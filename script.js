@@ -193,6 +193,8 @@
             }
             
             animateLine(lineData.element, lineData.text, timePerChar, () => {
+                // Apply formatting (bold, line breaks) after animation completes
+                processTextFormatting(lineData.element, lineData.text);
                 lineIndex++;
                 animateNextLine();
             });
@@ -201,10 +203,26 @@
         animateNextLine();
     }
 
+    // Process text to convert ** markers to bold and handle line breaks
+    function processTextFormatting(element, text) {
+        // Replace **text** with <strong>text</strong>
+        let processed = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Replace line break markers with <br>
+        processed = processed.replace(/\|NEWLINE\|/g, '<br>');
+        processed = processed.replace(/&#10;/g, '<br>');
+        processed = processed.replace(/\\n/g, '<br>');
+        element.innerHTML = processed;
+    }
+
     function animateLine(element, targetText, timePerChar, onComplete) {
         element.textContent = '';
         
-        const targetChars = targetText.split('');
+        // Store original text for post-processing
+        const originalText = targetText;
+        
+        // Remove ** markers and line breaks for animation
+        const cleanText = targetText.replace(/\*\*/g, '').replace(/\|NEWLINE\|/g, ' ').replace(/&#10;/g, ' ').replace(/\\n/g, ' ');
+        const targetChars = cleanText.split('');
         const charSpans = new Array(targetChars.length).fill(null);
         const settled = new Array(targetChars.length).fill(false);
         const created = new Array(targetChars.length).fill(false);
@@ -294,7 +312,7 @@
             }
             
             const charSpan = charSpans[currentIndex];
-            const targetChar = charSpan.dataset.targetChar;
+            const targetChar = targetChars[currentIndex]; // Use clean text character
             
             // Settle this character
             if (charSpan.dataset.isSpace !== 'true' && charSpan.dataset.isPunct !== 'true') {

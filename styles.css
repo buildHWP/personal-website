@@ -336,6 +336,13 @@ body {
     word-break: normal;
 }
 
+.email-body .email-header {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
 .email-body p:last-child {
     margin-bottom: 0;
 }
