@@ -36,6 +36,8 @@
         bgBlur: document.getElementById('bg-blur'),
         parallaxBg: document.getElementById('parallax-bg'),
         bgImage: document.getElementById('bg-image'),
+        emailIcon: document.getElementById('email-icon'),
+        emailNotification: document.getElementById('email-notification'),
         letterOverlay: document.getElementById('letter-overlay'),
         glassLetter: document.getElementById('glass-letter'),
         emailMeta: document.getElementById('email-meta'),
@@ -100,8 +102,8 @@
         state.imageLoaded = true;
         elements.loader.classList.add('hidden');
         
-        // Start the storytelling sequence
-        startStorySequence();
+        // Show email icon - user must click to open
+        // Don't auto-start the storytelling sequence
     }
 
     function onImageError() {
@@ -131,9 +133,51 @@
         }, CONFIG.modalShowDelay);
     }
 
-    function showModal() {
+    function showModal(expandFromIcon = false) {
         state.letterVisible = true;
+        
+        if (expandFromIcon) {
+            // Calculate expansion origin from icon position
+            const iconRect = elements.emailIcon.getBoundingClientRect();
+            const iconCenterX = iconRect.left + iconRect.width / 2;
+            const iconCenterY = iconRect.top + iconRect.height / 2;
+            
+            // Get viewport center for modal
+            const viewportCenterX = window.innerWidth / 2;
+            const viewportCenterY = window.innerHeight / 2;
+            
+            // Calculate percentage offset from center
+            const offsetX = ((iconCenterX - viewportCenterX) / window.innerWidth) * 100;
+            const offsetY = ((iconCenterY - viewportCenterY) / window.innerHeight) * 100;
+            
+            // Set transform origin (50% is center, so add offset)
+            const originX = 50 + offsetX;
+            const originY = 50 + offsetY;
+            
+            elements.glassLetter.style.setProperty('--expand-origin-x', `${originX}%`);
+            elements.glassLetter.style.setProperty('--expand-origin-y', `${originY}%`);
+            elements.glassLetter.classList.add('expanding');
+            elements.letterOverlay.classList.add('expanding');
+        }
+        
         elements.letterOverlay.classList.add('visible');
+        
+        // Hide email icon and notification with animation
+        if (elements.emailIcon) {
+            elements.emailIcon.classList.add('hidden');
+        }
+        if (elements.emailNotification) {
+            elements.emailNotification.style.opacity = '0';
+            elements.emailNotification.style.transform = 'scale(0)';
+        }
+        
+        // Remove expanding class after animation completes
+        if (expandFromIcon) {
+            setTimeout(() => {
+                elements.glassLetter.classList.remove('expanding');
+                elements.letterOverlay.classList.remove('expanding');
+            }, 600);
+        }
     }
 
     function showHeader() {
@@ -764,6 +808,52 @@
     }
 
     // ========================================
+    // Email Icon Click Handler
+    // ========================================
+    function initEmailIcon() {
+        if (!elements.emailIcon) return;
+        
+        // #region agent log
+        // Measure dimensions after icon is rendered
+        setTimeout(() => {
+            const rect = elements.emailIcon.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(elements.emailIcon);
+            const svg = elements.emailIcon.querySelector('.email-icon-svg');
+            const svgRect = svg ? svg.getBoundingClientRect() : null;
+            
+            fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initEmailIcon',message:'Email icon dimensions measurement',data:{containerWidth:rect.width,containerHeight:rect.height,containerTop:rect.top,containerLeft:rect.left,borderWidth:computedStyle.borderWidth,boxSizing:computedStyle.boxSizing,padding:computedStyle.padding,svgWidth:svgRect?.width,svgHeight:svgRect?.height,cssWidth:computedStyle.width,cssHeight:computedStyle.height},timestamp:Date.now(),sessionId:'debug-session',runId:'border-debug',hypothesisId:'A'})}).catch(()=>{});
+        }, 100);
+        // #endregion
+        
+        elements.emailIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!state.letterVisible && state.imageLoaded) {
+                // Start the storytelling sequence with expansion animation
+                showModal(true);
+                
+                // Step 2: Show the header
+                setTimeout(() => {
+                    showHeader();
+                    
+                    // Step 3: Start split-flap body text
+                    setTimeout(() => {
+                        startSplitFlapAnimation();
+                    }, CONFIG.bodyStartDelay);
+                    
+                }, CONFIG.headerShowDelay);
+            }
+        });
+        
+        // Keyboard accessibility
+        elements.emailIcon.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                elements.emailIcon.click();
+            }
+        });
+    }
+
+    // ========================================
     // Initialize
     // ========================================
     function init() {
@@ -773,6 +863,7 @@
         initButtonEffects();
         initParallax();
         initXFeedModal();
+        initEmailIcon();
         initImageLoading();
     }
 

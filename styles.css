@@ -152,6 +152,117 @@ body {
 }
 
 /* ========================================
+   Email Icon with Notification - Minimal & Sleek
+======================================== */
+.email-icon-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s var(--transition-smooth);
+    opacity: 1;
+    visibility: visible;
+    padding: 6px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Liquid glass border effect - fits tightly around icon */
+.email-icon-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 1px;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.1) 25%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0.1) 75%,
+        rgba(255, 255, 255, 0.3) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s var(--transition-smooth);
+    pointer-events: none;
+}
+
+.email-icon-container:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.email-icon-container:hover::before {
+    opacity: 1;
+}
+
+.email-icon-container:active {
+    transform: translate(-50%, -50%) scale(0.98);
+}
+
+.email-icon-container.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.email-icon-svg {
+    width: 44px;
+    height: 44px;
+    color: rgba(255, 255, 255, 0.95);
+    stroke: currentColor;
+    transition: color 0.2s var(--transition-smooth);
+    flex-shrink: 0;
+}
+
+.email-icon-container:hover .email-icon-svg {
+    color: rgba(255, 255, 255, 1);
+}
+
+.email-notification {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff3b30 0%, #ff2d55 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    padding: 0 5px;
+    transition: opacity 0.3s var(--transition-smooth),
+                transform 0.3s var(--transition-spring);
+    line-height: 1;
+}
+
+
+/* ========================================
    Letter Overlay Container
 ======================================== */
 .letter-overlay {
@@ -169,6 +280,30 @@ body {
     visibility: hidden;
     transition: opacity 0.8s var(--transition-smooth),
                 visibility 0.8s var(--transition-smooth);
+}
+
+/* Expansion animation from icon */
+.letter-overlay.expanding {
+    transition: none;
+}
+
+.letter-overlay.expanding .glass-letter {
+    transform-origin: var(--expand-origin-x, 50%) var(--expand-origin-y, 50%);
+    animation: expandFromIcon 0.6s var(--transition-spring) forwards;
+}
+
+@keyframes expandFromIcon {
+    0% {
+        transform: scale(0.1) translateY(0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 .letter-overlay.visible {
@@ -213,14 +348,14 @@ body {
         rgba(0, 0, 0, 0) 100%
     );
     
-    /* Entrance animation */
+    /* Entrance animation - default state */
     opacity: 0;
     transform: scale(0.96) translateY(12px);
     transition: opacity 0.5s var(--transition-smooth) 0.2s,
                 transform 0.6s var(--transition-spring) 0.2s;
 }
 
-.letter-overlay.visible .glass-letter {
+.letter-overlay.visible .glass-letter:not(.expanding) {
     opacity: 1;
     transform: scale(1) translateY(0);
 }

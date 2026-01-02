@@ -35,6 +35,22 @@
         <!-- Overlay for better text readability -->
         <div class="overlay"></div>
 
+        <!-- Email Icon with Notification -->
+        <button class="email-icon-container" id="email-icon" aria-label="Open email" role="button">
+            <svg class="email-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Clean, realistic envelope icon -->
+                <!-- Envelope body (rounded rectangle) -->
+                <path d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
+                      stroke="currentColor" 
+                      stroke-width="1.2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" 
+                      fill="none"/>
+            </svg>
+            <!-- Notification badge -->
+            <span class="email-notification" id="email-notification">1</span>
+        </button>
+
         <!-- Glass Email Modal -->
         <div class="letter-overlay" id="letter-overlay">
             <article class="glass-letter" id="glass-letter" role="dialog" aria-labelledby="email-subject">
