@@ -604,15 +604,52 @@
         // Clear existing content to prevent duplicates
         container.innerHTML = '';
         
+        // Create a wrapper for better styling
+        const wrapper = document.createElement('div');
+        wrapper.className = 'x-timeline-wrapper';
+        wrapper.style.cssText = 'text-align: center; padding: 20px;';
+        
         // Create timeline anchor using official Twitter Publish format
         const timelineAnchor = document.createElement('a');
         timelineAnchor.className = 'twitter-timeline';
         timelineAnchor.href = `https://twitter.com/${X_HANDLE}?ref_src=twsrc%5Etfw`;
         timelineAnchor.setAttribute('data-theme', 'dark');
-        timelineAnchor.setAttribute('data-height', '550');
-        timelineAnchor.textContent = `Tweets by ${X_HANDLE}`;
+        timelineAnchor.setAttribute('data-height', '500');
+        timelineAnchor.setAttribute('data-width', '100%');
+        timelineAnchor.style.cssText = 'color: #1DA1F2; font-size: 16px;';
+        timelineAnchor.textContent = `Loading @${X_HANDLE}'s posts...`;
         
-        container.appendChild(timelineAnchor);
+        wrapper.appendChild(timelineAnchor);
+        
+        // Add a "View on X" button as backup
+        const viewButton = document.createElement('a');
+        viewButton.href = `https://x.com/${X_HANDLE}`;
+        viewButton.target = '_blank';
+        viewButton.rel = 'noopener noreferrer';
+        viewButton.style.cssText = `
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        `;
+        viewButton.textContent = `View @${X_HANDLE} on X`;
+        viewButton.onmouseenter = () => {
+            viewButton.style.transform = 'translateY(-2px)';
+            viewButton.style.boxShadow = '0 4px 12px rgba(29, 161, 242, 0.4)';
+        };
+        viewButton.onmouseleave = () => {
+            viewButton.style.transform = 'translateY(0)';
+            viewButton.style.boxShadow = 'none';
+        };
+        
+        wrapper.appendChild(viewButton);
+        container.appendChild(wrapper);
         
         // Trigger widget rendering
         if (window.twttr?.widgets?.load) {
