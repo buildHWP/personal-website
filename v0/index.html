@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    
+    <!-- Preload the background image for faster loading -->
+    <link rel="preload" as="image" href="background.jpg" fetchpriority="high">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Main landing section -->
+    <section class="landing" id="landing">
+        <!-- Blurred background fill for edges -->
+        <div class="bg-blur" id="bg-blur"></div>
+        
+        <!-- Parallax background container -->
+        <div class="parallax-bg" id="parallax-bg">
+            <img 
+                src="background.jpg" 
+                alt="Mountain landscape with ethereal sky" 
+                class="bg-image"
+                id="bg-image"
+                loading="eager"
+            >
+        </div>
+
+        <!-- Overlay for better text readability -->
+        <div class="overlay"></div>
+
+        <!-- Glass Email Modal -->
+        <div class="letter-overlay" id="letter-overlay">
+            <article class="glass-letter" id="glass-letter" role="dialog" aria-labelledby="email-subject">
+                <!-- Email content -->
+                <div class="letter-content">
+                    <!-- Email metadata header -->
+                    <header class="email-meta" id="email-meta">
+                        <div class="meta-row">
+                            <span class="meta-label">From:</span>
+                            <span class="meta-value">Hyeonwoo Park</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">To:</span>
+                            <span class="meta-value">Me</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Subject:</span>
+                            <span class="meta-value" id="email-subject">breaking the ice</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Sent:</span>
+                            <span class="meta-value" id="email-timestamp">Loading...</span>
+                        </div>
+                    </header>
+                    
+                    <!-- Email body - split-flap display -->
+                    <div class="email-body" id="email-body">
+                        <p class="split-flap-line" data-text="Hi, nice to meet you, and if we've met before, wonderful to see you again"></p>
+                        <p class="split-flap-line" data-text="I'm an investor at XYZ, would love to learn more about what you're looking forward to and passionate about"></p>
+                        <p class="split-flap-line" data-text="Hope you're doing well"></p>
+                    </div>
+                    
+                    <!-- Signature -->
+                    <footer class="email-signature" id="email-signature">
+                        <span class="signature-name split-flap-line" data-text="Hyeonwoo"></span>
+                    </footer>
+                    
+                    <!-- Continue button -->
+                    <button class="letter-continue" id="letter-continue" aria-label="Continue">
+                        <span>Continue</span>
+                        <svg class="continue-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

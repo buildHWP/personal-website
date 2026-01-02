@@ -1,0 +1,714 @@
+/* ========================================
+   CSS Variables & Base Reset
+   Apple-inspired Glass UI
+======================================== */
+:root {
+    /* Apple System Font Stack */
+    --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    
+    /* Colors */
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-tertiary: rgba(255, 255, 255, 0.55);
+    
+    /* Apple Glass Material */
+    --glass-bg: rgba(180, 185, 195, 0.21);
+    --glass-bg-elevated: rgba(180, 185, 195, 0.27);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.35),
+                    0 0 1px rgba(255, 255, 255, 0.1);
+    
+    /* Transitions - Apple's spring-like curves */
+    --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Overlay */
+    --overlay-gradient: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.1) 0%,
+        rgba(0, 0, 0, 0.2) 100%
+    );
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-system);
+    background-color: #000;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+}
+
+/* ========================================
+   Loading Screen
+======================================== */
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.6s var(--transition-smooth), 
+                visibility 0.6s var(--transition-smooth);
+}
+
+.loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2.5px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   Landing Section
+======================================== */
+.landing {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ========================================
+   Blurred Background Fill
+======================================== */
+.bg-blur {
+    position: absolute;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background-image: url('background.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(60px) saturate(1.4) brightness(0.7);
+    z-index: 0;
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Parallax Background
+======================================== */
+.parallax-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bg-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    filter: saturate(1.05) brightness(0.95);
+    transition: transform 0.15s var(--transition-smooth);
+}
+
+/* ========================================
+   Overlay
+======================================== */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay-gradient);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ========================================
+   Letter Overlay Container
+======================================== */
+.letter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s var(--transition-smooth),
+                visibility 0.8s var(--transition-smooth);
+}
+
+.letter-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.letter-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* ========================================
+   Apple Glass Modal
+======================================== */
+.glass-letter {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+    
+    /* Entrance animation */
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+    transition: opacity 0.5s var(--transition-smooth) 0.2s,
+                transform 0.6s var(--transition-spring) 0.2s;
+}
+
+.letter-overlay.visible .glass-letter {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+/* Subtle inner highlight */
+.glass-letter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+}
+
+/* ========================================
+   Letter Content
+======================================== */
+.letter-content {
+    padding: 32px 28px 28px;
+}
+
+/* ========================================
+   Email Metadata Header
+======================================== */
+.email-meta {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+    
+    /* Hidden until JS triggers */
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s var(--transition-smooth),
+                transform 0.4s var(--transition-smooth);
+}
+
+.email-meta.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+    font-family: var(--font-system);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.meta-row:last-child {
+    margin-bottom: 0;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 60px;
+}
+
+.meta-value {
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+#email-subject {
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Email Body - Split-Flap Display
+======================================== */
+.email-body {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+    min-height: 120px;
+}
+
+.email-body p {
+    margin-bottom: 16px;
+}
+
+.email-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* Split-flap character styling */
+.split-flap-char {
+    display: inline-block;
+    position: relative;
+    transition: transform 0.05s ease-out;
+}
+
+.split-flap-char.flipping {
+    animation: splitFlapFlip 0.08s ease-out;
+}
+
+@keyframes splitFlapFlip {
+    0% {
+        transform: rotateX(0deg);
+        opacity: 0.7;
+    }
+    50% {
+        transform: rotateX(-90deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+/* Cursor for split-flap effect */
+.split-flap-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--text-secondary);
+    margin-left: 1px;
+    animation: cursorBlink 0.6s ease-in-out infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* ========================================
+   Email Signature
+======================================== */
+.email-signature {
+    margin-top: 24px;
+    opacity: 0;
+    transition: opacity 0.4s var(--transition-smooth);
+}
+
+.email-signature.visible {
+    opacity: 1;
+}
+
+.email-signature .signature-name {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* ========================================
+   Continue Button - Apple Style with Prismatic Trim
+======================================== */
+.letter-continue {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px 20px;
+    background: var(--glass-bg-elevated);
+    border: 0.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s var(--transition-smooth);
+    
+    /* CSS variables for prismatic effect */
+    --omx: 50%;
+    --omy: 50%;
+    --prism: 0;
+    
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s var(--transition-smooth),
+                transform 0.4s var(--transition-smooth),
+                background 0.2s var(--transition-smooth);
+}
+
+.letter-continue.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Prismatic rainbow trim - opposite mouse position */
+.letter-continue::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    
+    background:
+        radial-gradient(circle at var(--omx) var(--omy),
+            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0) 50%
+        ),
+        conic-gradient(from 0deg at var(--omx) var(--omy),
+            rgba(255, 100, 150, 0.5),
+            rgba(255, 200, 100, 0.45),
+            rgba(100, 255, 180, 0.4),
+            rgba(100, 180, 255, 0.45),
+            rgba(180, 100, 255, 0.4),
+            rgba(255, 100, 150, 0.5)
+        );
+    
+    filter: blur(6px) saturate(160%);
+    mix-blend-mode: screen;
+    opacity: var(--prism);
+    transition: opacity 0.3s var(--transition-smooth);
+    
+    /* Mask to show only the rim */
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    padding: 2px;
+}
+
+.letter-continue > span,
+.letter-continue .continue-arrow {
+    position: relative;
+    z-index: 1;
+}
+
+.letter-continue:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: scale(1.01);
+}
+
+.letter-continue:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.letter-continue .continue-arrow {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+    transition: transform 0.2s var(--transition-smooth);
+}
+
+.letter-continue:hover .continue-arrow {
+    transform: translateX(3px);
+}
+
+/* Prismatic entice effect - activated after delay */
+.letter-continue.prismatic-entice {
+    --prism: 0.8;
+}
+
+.letter-continue.prismatic-entice::after {
+    animation: prismaticPulse 3s ease-in-out infinite;
+}
+
+.letter-continue.prismatic-entice > span,
+.letter-continue.prismatic-entice .continue-arrow {
+    animation: prismaticText 4s ease-in-out infinite;
+}
+
+@keyframes prismaticPulse {
+    0%, 100% {
+        --prism: 0.6;
+        filter: blur(6px) saturate(160%);
+    }
+    50% {
+        --prism: 1;
+        filter: blur(8px) saturate(200%);
+    }
+}
+
+@keyframes prismaticText {
+    0%, 100% {
+        filter: drop-shadow(0 0 2px rgba(255, 150, 200, 0.5))
+                drop-shadow(0 0 4px rgba(150, 200, 255, 0.3));
+    }
+    25% {
+        filter: drop-shadow(0 0 3px rgba(200, 255, 180, 0.5))
+                drop-shadow(0 0 6px rgba(255, 180, 150, 0.3));
+    }
+    50% {
+        filter: drop-shadow(0 0 4px rgba(150, 180, 255, 0.6))
+                drop-shadow(0 0 8px rgba(255, 150, 200, 0.4));
+    }
+    75% {
+        filter: drop-shadow(0 0 3px rgba(255, 200, 150, 0.5))
+                drop-shadow(0 0 6px rgba(180, 150, 255, 0.3));
+    }
+}
+
+/* ========================================
+   Fade Transition
+======================================== */
+.landing.fade-out {
+    animation: fadeOut 1s var(--transition-smooth) forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ========================================
+   Next Section
+======================================== */
+.next-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.8s var(--transition-smooth);
+}
+
+.next-section.visible {
+    opacity: 1;
+}
+
+.next-content {
+    text-align: center;
+    padding: 24px;
+}
+
+.next-content h2 {
+    font-family: var(--font-system);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Responsive Adjustments
+======================================== */
+@media (max-width: 768px) {
+    .letter-overlay {
+        padding: 20px;
+    }
+    
+    .letter-content {
+        padding: 28px 24px 24px;
+    }
+    
+    .glass-letter {
+        max-width: 100%;
+        border-radius: 16px;
+    }
+    
+    .letter-header {
+        font-size: 20px;
+    }
+    
+    .letter-body {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .letter-overlay {
+        padding: 16px;
+    }
+    
+    .letter-content {
+        padding: 24px 20px 20px;
+    }
+    
+    .letter-header {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+    
+    .letter-body {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    
+    .letter-body p {
+        margin-bottom: 14px;
+    }
+    
+    .letter-signature {
+        margin-top: 20px;
+        padding-top: 16px;
+    }
+    
+    .letter-continue {
+        margin-top: 20px;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+    .glass-letter {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .letter-content {
+        padding: 20px;
+    }
+    
+    .letter-body p {
+        margin-bottom: 12px;
+    }
+    
+    .letter-signature {
+        margin-top: 16px;
+        padding-top: 12px;
+    }
+    
+    .letter-continue {
+        margin-top: 16px;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .letter-header,
+    .letter-body p,
+    .letter-signature,
+    .letter-continue {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ========================================
+   Selection Styling
+======================================== */
+::selection {
+    background: rgba(0, 122, 255, 0.3);
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Scrollbar (WebKit)
+======================================== */
+.glass-letter::-webkit-scrollbar {
+    width: 6px;
+}
+
+.glass-letter::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.glass-letter::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.glass-letter::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

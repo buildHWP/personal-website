@@ -1,0 +1,898 @@
+/* ========================================
+   CSS Variables & Base Reset
+   Apple-inspired Glass UI
+======================================== */
+:root {
+    /* Apple System Font Stack */
+    --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    
+    /* Colors */
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-tertiary: rgba(255, 255, 255, 0.55);
+    
+    /* Apple Glass Material */
+    --glass-bg: rgba(180, 185, 195, 0.10);
+    --glass-bg-elevated: rgba(180, 185, 195, 0.14);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.35),
+                    0 0 1px rgba(255, 255, 255, 0.1);
+    
+    /* Transitions - Apple's spring-like curves */
+    --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Overlay */
+    --overlay-gradient: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.1) 0%,
+        rgba(0, 0, 0, 0.2) 100%
+    );
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-system);
+    background-color: #000;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+}
+
+/* ========================================
+   Loading Screen
+======================================== */
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.6s var(--transition-smooth), 
+                visibility 0.6s var(--transition-smooth);
+}
+
+.loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2.5px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   Landing Section
+======================================== */
+.landing {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ========================================
+   Blurred Background Fill
+======================================== */
+.bg-blur {
+    position: absolute;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background-image: url('background.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(60px) saturate(1.4) brightness(0.7);
+    z-index: 0;
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Parallax Background
+======================================== */
+.parallax-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bg-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    filter: saturate(1.05) brightness(0.95);
+    transition: transform 0.15s var(--transition-smooth);
+}
+
+/* ========================================
+   Overlay
+======================================== */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay-gradient);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ========================================
+   Letter Overlay Container
+======================================== */
+.letter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s var(--transition-smooth),
+                visibility 0.8s var(--transition-smooth);
+}
+
+.letter-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.letter-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* ========================================
+   Apple Glass Modal
+======================================== */
+.glass-letter {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+    
+    /* Entrance animation */
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+    transition: opacity 0.5s var(--transition-smooth) 0.2s,
+                transform 0.6s var(--transition-spring) 0.2s;
+}
+
+.letter-overlay.visible .glass-letter {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+/* Subtle inner highlight */
+.glass-letter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+}
+
+/* ========================================
+   Letter Content
+======================================== */
+.letter-content {
+    padding: 32px 28px 28px;
+}
+
+/* ========================================
+   Email Metadata Header
+======================================== */
+.email-meta {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+    
+    /* Hidden until JS triggers */
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s var(--transition-smooth),
+                transform 0.4s var(--transition-smooth);
+}
+
+.email-meta.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+    font-family: var(--font-system);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.meta-row:last-child {
+    margin-bottom: 0;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 60px;
+}
+
+.meta-value {
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+#email-subject {
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Email Body - Split-Flap Display
+======================================== */
+.email-body {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+    min-height: 120px;
+}
+
+.email-body p {
+    margin-bottom: 16px;
+}
+
+.email-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* Split-flap character styling */
+.split-flap-char {
+    display: inline-block;
+    position: relative;
+    transition: transform 0.05s ease-out;
+}
+
+.split-flap-char.flipping {
+    animation: splitFlapFlip 0.08s ease-out;
+}
+
+@keyframes splitFlapFlip {
+    0% {
+        transform: rotateX(0deg);
+        opacity: 0.7;
+    }
+    50% {
+        transform: rotateX(-90deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+/* Cursor for split-flap effect */
+.split-flap-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--text-secondary);
+    margin-left: 1px;
+    animation: cursorBlink 0.6s ease-in-out infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* ========================================
+   Email Signature
+======================================== */
+.email-signature {
+    margin-top: 24px;
+    opacity: 0;
+    transition: opacity 0.4s var(--transition-smooth);
+}
+
+.email-signature.visible {
+    opacity: 1;
+}
+
+.email-signature .signature-name {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* ========================================
+   Continue Button - Apple Style with Prismatic Trim
+======================================== */
+.letter-continue {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px 20px;
+    background: var(--glass-bg-elevated);
+    border: 0.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s var(--transition-smooth);
+    
+    /* CSS variables for prismatic effect */
+    --omx: 50%;
+    --omy: 50%;
+    --prism: 0;
+    
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s var(--transition-smooth),
+                transform 0.4s var(--transition-smooth),
+                background 0.2s var(--transition-smooth);
+}
+
+.letter-continue.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Edge-proximity glass lighting effect */
+.letter-continue {
+    --edge-x: 50%;
+    --edge-y: 50%;
+    --glow: 0;
+    --hue: 0;
+    /* Offset from center in pixels - calculated by JS */
+    --shadow-x: 0px;
+    --shadow-y: 0px;
+}
+
+/* Prismatic edge glow using positioned box-shadow */
+.letter-continue::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+    background: transparent;
+    
+    /* Multi-colored box-shadows offset toward edge point */
+    /* These naturally appear ONLY on the outer edge */
+    box-shadow: 
+        var(--shadow-x) var(--shadow-y) 12px 0px hsla(calc(var(--hue)), 85%, 60%, calc(var(--glow) * 0.7)),
+        var(--shadow-x) var(--shadow-y) 20px 2px hsla(calc(var(--hue) + 60), 80%, 55%, calc(var(--glow) * 0.5)),
+        var(--shadow-x) var(--shadow-y) 28px 4px hsla(calc(var(--hue) + 120), 75%, 50%, calc(var(--glow) * 0.35)),
+        var(--shadow-x) var(--shadow-y) 36px 6px hsla(calc(var(--hue) + 180), 70%, 50%, calc(var(--glow) * 0.2));
+    
+    animation: hueFlow 4s linear infinite;
+}
+
+@keyframes hueFlow {
+    from { --hue: 0; }
+    to { --hue: 360; }
+}
+
+@property --hue {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+}
+
+.letter-continue > span,
+.letter-continue .continue-arrow {
+    position: relative;
+    z-index: 1;
+}
+
+/* Default state - static white text */
+.letter-continue > span {
+    color: var(--text-primary);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.letter-continue .continue-arrow {
+    stroke: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+/* Hover - liquid prismatic flow activates */
+.letter-continue:hover > span {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 1) 0%,
+        rgba(230, 180, 200, 1) 12.5%,
+        rgba(230, 200, 170, 1) 25%,
+        rgba(180, 220, 180, 1) 37.5%,
+        rgba(170, 210, 220, 1) 50%,
+        rgba(180, 190, 230, 1) 62.5%,
+        rgba(210, 180, 220, 1) 75%,
+        rgba(230, 180, 210, 1) 87.5%,
+        rgba(255, 255, 255, 1) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: liquidFlow 2.5s linear infinite;
+}
+
+.letter-continue:hover .continue-arrow {
+    animation: arrowLiquidFlow 2.5s linear infinite;
+}
+
+@keyframes liquidFlow {
+    0% {
+        background-position: 200% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Arrow color synced - muted prismatic tones */
+@keyframes arrowLiquidFlow {
+    0%, 100% {
+        stroke: rgba(255, 255, 255, 1);
+        filter: drop-shadow(0 0 2px rgba(230, 180, 200, 0.5));
+    }
+    12.5% {
+        stroke: rgba(230, 180, 200, 1);
+        filter: drop-shadow(0 0 2px rgba(230, 180, 200, 0.6));
+    }
+    25% {
+        stroke: rgba(230, 200, 170, 1);
+        filter: drop-shadow(0 0 2px rgba(230, 200, 170, 0.6));
+    }
+    37.5% {
+        stroke: rgba(180, 220, 180, 1);
+        filter: drop-shadow(0 0 2px rgba(180, 220, 180, 0.6));
+    }
+    50% {
+        stroke: rgba(170, 210, 220, 1);
+        filter: drop-shadow(0 0 2px rgba(170, 210, 220, 0.6));
+    }
+    62.5% {
+        stroke: rgba(180, 190, 230, 1);
+        filter: drop-shadow(0 0 2px rgba(180, 190, 230, 0.6));
+    }
+    75% {
+        stroke: rgba(210, 180, 220, 1);
+        filter: drop-shadow(0 0 2px rgba(210, 180, 220, 0.6));
+    }
+    87.5% {
+        stroke: rgba(230, 180, 210, 1);
+        filter: drop-shadow(0 0 2px rgba(230, 180, 210, 0.6));
+    }
+}
+
+.letter-continue:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: scale(1.01);
+}
+
+.letter-continue:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.letter-continue .continue-arrow {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+    transition: transform 0.2s var(--transition-smooth);
+}
+
+.letter-continue:hover .continue-arrow {
+    transform: translateX(3px);
+}
+
+/* Edge glow entice - no longer animates glow/edge vars; JS handles tracking */
+.letter-continue.prismatic-entice {
+    /* Class kept for JS detection but no animation that overrides tracking */
+}
+
+/* ========================================
+   Fade Transition
+======================================== */
+.landing.fade-out {
+    animation: fadeOut 1s var(--transition-smooth) forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ========================================
+   Next Section
+======================================== */
+.next-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.8s var(--transition-smooth);
+}
+
+.next-section.visible {
+    opacity: 1;
+}
+
+.next-content {
+    text-align: center;
+    padding: 24px;
+}
+
+.next-content h2 {
+    font-family: var(--font-system);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Responsive Adjustments
+======================================== */
+@media (max-width: 768px) {
+    .letter-overlay {
+        padding: 20px;
+    }
+    
+    .letter-content {
+        padding: 28px 24px 24px;
+    }
+    
+    .glass-letter {
+        max-width: 100%;
+        border-radius: 16px;
+    }
+    
+    .letter-header {
+        font-size: 20px;
+    }
+    
+    .letter-body {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .letter-overlay {
+        padding: 16px;
+    }
+    
+    .letter-content {
+        padding: 24px 20px 20px;
+    }
+    
+    .letter-header {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+    
+    .letter-body {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    
+    .letter-body p {
+        margin-bottom: 14px;
+    }
+    
+    .letter-signature {
+        margin-top: 20px;
+        padding-top: 16px;
+    }
+    
+    .letter-continue {
+        margin-top: 20px;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+    .glass-letter {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .letter-content {
+        padding: 20px;
+    }
+    
+    .letter-body p {
+        margin-bottom: 12px;
+    }
+    
+    .letter-signature {
+        margin-top: 16px;
+        padding-top: 12px;
+    }
+    
+    .letter-continue {
+        margin-top: 16px;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .letter-header,
+    .letter-body p,
+    .letter-signature,
+    .letter-continue {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ========================================
+   Selection Styling
+======================================== */
+::selection {
+    background: rgba(0, 122, 255, 0.3);
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Scrollbar (WebKit)
+======================================== */
+.glass-letter::-webkit-scrollbar {
+    width: 6px;
+}
+
+.glass-letter::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.glass-letter::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.glass-letter::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   X Feed Modal
+======================================== */
+.x-feed-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s var(--transition-smooth),
+                visibility 0.5s var(--transition-smooth);
+}
+
+.x-feed-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.x-feed-modal {
+    max-width: 720px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    /* Override glass-letter defaults for x-feed context */
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+    transition: opacity 0.5s var(--transition-smooth),
+                transform 0.5s var(--transition-smooth);
+}
+
+.x-feed-overlay.visible .x-feed-modal {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.x-feed-content {
+    position: relative;
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.x-feed-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 24px;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+}
+
+.x-feed-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.x-feed-close:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.x-feed-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 32px;
+    border-radius: 12px;
+}
+
+/* Style the Twitter iframe container */
+.x-feed-container .twitter-timeline {
+    border-radius: 12px;
+}
+
+/* Scrollbar for X feed container */
+.x-feed-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.x-feed-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.x-feed-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.x-feed-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .x-feed-overlay {
+        padding: 16px;
+    }
+    
+    .x-feed-modal {
+        max-width: 100%;
+        max-height: 90vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .x-feed-overlay {
+        padding: 12px;
+    }
+    
+    .x-feed-content {
+        padding: 12px;
+    }
+    
+    .x-feed-close {
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        font-size: 20px;
+    }
+}
