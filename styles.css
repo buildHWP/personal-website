@@ -204,10 +204,27 @@ body {
     background: var(--glass-bg);
     backdrop-filter: blur(40px) saturate(1.8);
     -webkit-backdrop-filter: blur(40px) saturate(1.8);
-    border: 0.5px solid var(--glass-border);
     border-radius: 20px;
     box-shadow: var(--glass-shadow);
     overflow: visible;
+    
+    /* Fade-in effect from edges (photo visible) to center (clear glass) */
+    -webkit-mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 1) 40%,
+        rgba(0, 0, 0, 0.85) 60%,
+        rgba(0, 0, 0, 0.6) 75%,
+        rgba(0, 0, 0, 0.3) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 1) 40%,
+        rgba(0, 0, 0, 0.85) 60%,
+        rgba(0, 0, 0, 0.6) 75%,
+        rgba(0, 0, 0, 0.3) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
     
     /* Entrance animation */
     opacity: 0;
@@ -306,10 +323,17 @@ body {
     color: var(--text-secondary);
     letter-spacing: -0.01em;
     min-height: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: normal;
+    overflow: visible;
 }
 
 .email-body p {
     margin-bottom: 10px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: normal;
 }
 
 .email-body p:last-child {

@@ -13,7 +13,7 @@
         modalShowDelay: 200,          // Delay after image loads before showing modal
         headerShowDelay: 300,         // Delay after modal before showing header
         bodyStartDelay: 400,          // Delay after header before starting body text
-        splitFlapDuration: 882,       // Total time for all body text (~0.88 seconds, 1.7x faster)
+        splitFlapDuration: 441,       // Total time for all body text (~0.44 seconds, 2x faster)
         charsPerFlip: 1,              // Characters to flip through before settling
         flipInterval: 1,              // Ms between character flips (already at minimum)
         prismaticEnticeDelay: 6000,   // Delay before prismatic entice effect (6 seconds)
