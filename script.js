@@ -595,6 +595,7 @@
     
     /**
      * Renders the X timeline into the specified container
+     * Uses the official Twitter Publish embed format
      * @param {HTMLElement} container - The container element
      */
     function renderXTimeline(container) {
@@ -603,91 +604,17 @@
         // Clear existing content to prevent duplicates
         container.innerHTML = '';
         
-        // Add loading indicator
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'x-feed-loading';
-        loadingDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Loading timeline...</p>';
-        container.appendChild(loadingDiv);
-        
-        // Set a timeout to handle rate limiting or slow loads
-        const timeoutId = setTimeout(() => {
-            if (loadingDiv.parentNode) {
-                loadingDiv.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <p style="color: var(--text-primary); margin-bottom: 16px;">Timeline temporarily unavailable</p>
-                        <a href="https://twitter.com/${X_HANDLE}" 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           style="color: #1DA1F2; text-decoration: none; font-weight: 500;">
-                            View @${X_HANDLE} on X →
-                        </a>
-                    </div>
-                `;
-            }
-        }, 8000);
-        
-        // Use createTimeline API for better control
-        if (window.twttr?.widgets?.createTimeline) {
-            window.twttr.widgets.createTimeline(
-                {
-                    sourceType: 'profile',
-                    screenName: X_HANDLE
-                },
-                container,
-                {
-                    theme: 'dark',
-                    chrome: 'noheader nofooter transparent',
-                    height: 550,
-                    tweetLimit: 10,
-                    dnt: true
-                }
-            ).then((el) => {
-                clearTimeout(timeoutId);
-                // Remove loading indicator on success
-                if (loadingDiv.parentNode) {
-                    loadingDiv.remove();
-                }
-            }).catch((err) => {
-                clearTimeout(timeoutId);
-                console.error('Timeline creation failed:', err);
-                // Show fallback link
-                if (loadingDiv.parentNode) {
-                    loadingDiv.innerHTML = `
-                        <div style="text-align: center; padding: 40px;">
-                            <p style="color: var(--text-primary); margin-bottom: 16px;">Timeline unavailable</p>
-                            <a href="https://twitter.com/${X_HANDLE}" 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               style="color: #1DA1F2; text-decoration: none; font-weight: 500;">
-                                View @${X_HANDLE} on X →
-                            </a>
-                        </div>
-                    `;
-                }
-            });
-        } else {
-            clearTimeout(timeoutId);
-            // Fallback: use anchor method
-            loadingDiv.remove();
-            createTimelineAnchor(container);
-        }
-    }
-    
-    /**
-     * Creates a timeline anchor as fallback
-     */
-    function createTimelineAnchor(container) {
+        // Create timeline anchor using official Twitter Publish format
         const timelineAnchor = document.createElement('a');
         timelineAnchor.className = 'twitter-timeline';
-        timelineAnchor.href = `https://twitter.com/${X_HANDLE}`;
+        timelineAnchor.href = `https://twitter.com/${X_HANDLE}?ref_src=twsrc%5Etfw`;
         timelineAnchor.setAttribute('data-theme', 'dark');
         timelineAnchor.setAttribute('data-height', '550');
-        timelineAnchor.setAttribute('data-chrome', 'noheader nofooter transparent');
-        timelineAnchor.setAttribute('data-tweet-limit', '10');
-        timelineAnchor.textContent = `Tweets by @${X_HANDLE}`;
+        timelineAnchor.textContent = `Tweets by ${X_HANDLE}`;
         
         container.appendChild(timelineAnchor);
         
+        // Trigger widget rendering
         if (window.twttr?.widgets?.load) {
             window.twttr.widgets.load(container);
         }
