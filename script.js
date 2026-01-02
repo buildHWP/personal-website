@@ -609,6 +609,23 @@
         loadingDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Loading timeline...</p>';
         container.appendChild(loadingDiv);
         
+        // Set a timeout to handle rate limiting or slow loads
+        const timeoutId = setTimeout(() => {
+            if (loadingDiv.parentNode) {
+                loadingDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <p style="color: var(--text-primary); margin-bottom: 16px;">Timeline temporarily unavailable</p>
+                        <a href="https://twitter.com/${X_HANDLE}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           style="color: #1DA1F2; text-decoration: none; font-weight: 500;">
+                            View @${X_HANDLE} on X →
+                        </a>
+                    </div>
+                `;
+            }
+        }, 8000);
+        
         // Use createTimeline API for better control
         if (window.twttr?.widgets?.createTimeline) {
             window.twttr.widgets.createTimeline(
@@ -625,17 +642,31 @@
                     dnt: true
                 }
             ).then((el) => {
+                clearTimeout(timeoutId);
                 // Remove loading indicator on success
                 if (loadingDiv.parentNode) {
                     loadingDiv.remove();
                 }
             }).catch((err) => {
+                clearTimeout(timeoutId);
                 console.error('Timeline creation failed:', err);
-                // Fall back to anchor method
-                loadingDiv.remove();
-                createTimelineAnchor(container);
+                // Show fallback link
+                if (loadingDiv.parentNode) {
+                    loadingDiv.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <p style="color: var(--text-primary); margin-bottom: 16px;">Timeline unavailable</p>
+                            <a href="https://twitter.com/${X_HANDLE}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               style="color: #1DA1F2; text-decoration: none; font-weight: 500;">
+                                View @${X_HANDLE} on X →
+                            </a>
+                        </div>
+                    `;
+                }
             });
         } else {
+            clearTimeout(timeoutId);
             // Fallback: use anchor method
             loadingDiv.remove();
             createTimelineAnchor(container);

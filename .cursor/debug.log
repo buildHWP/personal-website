@@ -560,3 +560,5 @@
 {"location":"script.js:updateEdgeGlow:result","message":"glow calculation","data":{"distance":141.75811767578125,"glow":0,"edgeXPercent":94.05191044439995,"edgeYPercent":0,"px":396.3723449707031,"py":-141.75811767578125},"timestamp":1767327797860,"sessionId":"debug-session","hypothesisId":"B"}
 {"location":"script.js:initButtonEffects","message":"initButtonEffects called","data":{"btnExists":true},"timestamp":1767327806634,"sessionId":"debug-session","hypothesisId":"C"}
 {"location":"script.js:showLetter","message":"prismatic-entice added - tracking should continue","data":{"timestamp":1767327816666},"timestamp":1767327816666,"sessionId":"debug-session","runId":"post-fix","hypothesisId":"F"}
+{"location":"script.js:initButtonEffects","message":"initButtonEffects called","data":{"btnExists":true},"timestamp":1767329582466,"sessionId":"debug-session","hypothesisId":"C"}
+{"location":"script.js:showLetter","message":"prismatic-entice added - tracking should continue","data":{"timestamp":1767329593329},"timestamp":1767329593329,"sessionId":"debug-session","runId":"post-fix","hypothesisId":"F"}
