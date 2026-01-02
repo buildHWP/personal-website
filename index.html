@@ -8,6 +8,11 @@
     <!-- Preload the background image for faster loading -->
     <link rel="preload" as="image" href="background.jpg" fetchpriority="high">
     
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Canela:wght@300;400;500;600;700&family=Graphik:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -37,23 +42,47 @@
 
         <!-- Email Icon with Notification -->
         <button class="email-icon-container" id="email-icon" aria-label="Open email" role="button">
-            <svg class="email-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Clean, realistic envelope icon -->
-                <!-- Envelope body (rounded rectangle) -->
-                <path d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
-                      stroke="currentColor" 
-                      stroke-width="1.2" 
-                      stroke-linecap="round" 
-                      stroke-linejoin="round" 
-                      fill="none"/>
-            </svg>
+            <div class="email-icon-svg-wrapper">
+                <svg class="email-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rainbow-gradient" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="var(--lemon-chiffon)" />
+                            <stop offset="11.11%" stop-color="var(--powder-petal)" />
+                            <stop offset="22.22%" stop-color="var(--cotton-rose)" />
+                            <stop offset="33.33%" stop-color="var(--pink-orchid)" />
+                            <stop offset="44.44%" stop-color="var(--mauve)" />
+                            <stop offset="55.55%" stop-color="var(--baby-blue-ice)" />
+                            <stop offset="66.66%" stop-color="var(--frosted-blue)" />
+                            <stop offset="77.77%" stop-color="var(--electric-aqua)" />
+                            <stop offset="88.88%" stop-color="var(--aquamarine)" />
+                            <stop offset="100%" stop-color="var(--celadon)" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Rotating border path (thicker stroke behind) -->
+                    <path class="email-icon-path-border" 
+                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
+                          stroke="url(#rainbow-gradient)" 
+                          stroke-width="1.9" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round" 
+                          fill="none"/>
+                    <!-- Original path (on top) -->
+                    <path class="email-icon-path" 
+                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
+                          stroke="currentColor" 
+                          stroke-width="1.5" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round" 
+                          fill="none"/>
+                </svg>
+            </div>
             <!-- Notification badge -->
             <span class="email-notification" id="email-notification">1</span>
         </button>
 
         <!-- Glass Email Modal -->
         <div class="letter-overlay" id="letter-overlay">
-            <article class="glass-letter" id="glass-letter" role="dialog" aria-labelledby="email-subject">
+            <article class="glass-letter test-a" id="glass-letter" role="dialog" aria-labelledby="email-subject">
                 <!-- Email content -->
                 <div class="letter-content">
                     <!-- Email metadata header -->

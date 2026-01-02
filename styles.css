@@ -3,13 +3,26 @@
    Apple-inspired Glass UI
 ======================================== */
 :root {
-    /* Helvetica Font Stack */
-    --font-system: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /* Font Stack */
+    --font-system: 'Canela', 'Helvetica Neue', Helvetica, Arial, serif;
+    --font-graphik: 'Graphik', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     
     /* Colors */
-    --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.7);
-    --text-tertiary: rgba(255, 255, 255, 0.55);
+    --text-primary: rgba(255, 255, 255, 1);
+    --text-secondary: rgba(255, 255, 255, 1);
+    --text-tertiary: rgba(255, 255, 255, 1);
+    
+    /* Rainbow Palette */
+    --lemon-chiffon: #fbf8cc;
+    --powder-petal: #fde4cf;
+    --cotton-rose: #ffcfd2;
+    --pink-orchid: #f1c0e8;
+    --mauve: #cfbaf0;
+    --baby-blue-ice: #a3c4f3;
+    --frosted-blue: #90dbf4;
+    --electric-aqua: #8eecf5;
+    --aquamarine: #98f5e1;
+    --celadon: #b9fbc0;
     
     /* Apple Glass Material */
     --glass-bg: rgba(180, 185, 195, 0.10);
@@ -18,8 +31,57 @@
     
     /* Background opacity controls - reduce to show more background, increase for readability */
     /* REVERT: Change both values back to 0.05 and 0.025 respectively */
-    --glass-panel-opacity: 0.02;
+    --glass-panel-opacity: 0.0015;
     --icon-panel-opacity: 0.01;
+    
+    /* Letter content edge fade - stronger and wider (100px fade, 0.3 edge opacity) */
+    /* For desired ~0.51 at corners when doubled: 0.51 = 1 - (1-x)^2, solving: x ≈ 0.3 */
+    /* 15% darker: 200 * 0.85 = 170 */
+    --letter-overlay-gradient: 
+        linear-gradient(to right,
+            rgba(170, 170, 170, 0.3) 0px,
+            rgba(170, 170, 170, 0.25) 8px,
+            rgba(170, 170, 170, 0.18) 16px,
+            rgba(170, 170, 170, 0.12) 24px,
+            rgba(170, 170, 170, 0.07) 32px,
+            rgba(170, 170, 170, 0.03) 40px,
+            rgba(170, 170, 170, 0.02) 48px,
+            rgba(170, 170, 170, 0.01) 56px,
+            rgba(170, 170, 170, 0) 64px,
+            transparent 64px,
+            transparent calc(100% - 64px),
+            rgba(170, 170, 170, 0) calc(100% - 64px),
+            rgba(170, 170, 170, 0.01) calc(100% - 56px),
+            rgba(170, 170, 170, 0.02) calc(100% - 48px),
+            rgba(170, 170, 170, 0.03) calc(100% - 40px),
+            rgba(170, 170, 170, 0.07) calc(100% - 32px),
+            rgba(170, 170, 170, 0.12) calc(100% - 24px),
+            rgba(170, 170, 170, 0.18) calc(100% - 16px),
+            rgba(170, 170, 170, 0.25) calc(100% - 8px),
+            rgba(170, 170, 170, 0.3) 100%
+        ),
+        linear-gradient(to bottom,
+            rgba(170, 170, 170, 0.3) 0px,
+            rgba(170, 170, 170, 0.25) 8px,
+            rgba(170, 170, 170, 0.18) 16px,
+            rgba(170, 170, 170, 0.12) 24px,
+            rgba(170, 170, 170, 0.07) 32px,
+            rgba(170, 170, 170, 0.03) 40px,
+            rgba(170, 170, 170, 0.02) 48px,
+            rgba(170, 170, 170, 0.01) 56px,
+            rgba(170, 170, 170, 0) 64px,
+            transparent 64px,
+            transparent calc(100% - 64px),
+            rgba(170, 170, 170, 0) calc(100% - 64px),
+            rgba(170, 170, 170, 0.01) calc(100% - 56px),
+            rgba(170, 170, 170, 0.02) calc(100% - 48px),
+            rgba(170, 170, 170, 0.03) calc(100% - 40px),
+            rgba(170, 170, 170, 0.07) calc(100% - 32px),
+            rgba(170, 170, 170, 0.12) calc(100% - 24px),
+            rgba(170, 170, 170, 0.18) calc(100% - 16px),
+            rgba(170, 170, 170, 0.25) calc(100% - 8px),
+            rgba(170, 170, 170, 0.3) 100%
+        );
     --glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.35),
                     0 0 1px rgba(255, 255, 255, 0.1);
     
@@ -207,6 +269,45 @@ body {
     background: var(--overlay-gradient);
     z-index: 2;
     pointer-events: none;
+    --rainbow-angle: 0deg;
+}
+
+/* Rotating hue overlay for background opacity */
+.overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from var(--rainbow-angle),
+        rgba(251, 248, 204, 0.15) 0deg,
+        rgba(253, 228, 207, 0.15) 36deg,
+        rgba(255, 207, 210, 0.15) 72deg,
+        rgba(241, 192, 232, 0.15) 108deg,
+        rgba(207, 186, 240, 0.15) 144deg,
+        rgba(163, 196, 243, 0.15) 180deg,
+        rgba(144, 219, 244, 0.15) 216deg,
+        rgba(142, 236, 245, 0.15) 252deg,
+        rgba(152, 245, 225, 0.15) 288deg,
+        rgba(185, 251, 192, 0.15) 324deg,
+        rgba(251, 248, 204, 0.15) 360deg
+    );
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    animation: rotateRainbowGradientSlow 21s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes rotateRainbowGradientSlow {
+    from {
+        --rainbow-angle: 0deg;
+    }
+    to {
+        --rainbow-angle: 360deg;
+    }
 }
 
 /* ========================================
@@ -221,8 +322,8 @@ body {
     height: 56px;
     /* REVERT: Change back to rgba(255, 255, 255, 0.025) */
     background: rgba(255, 255, 255, var(--icon-panel-opacity));
-    backdrop-filter: blur(12px) saturate(1.2);
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    backdrop-filter: blur(12px) saturate(1.2);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 14px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
@@ -255,6 +356,7 @@ body {
         rgba(255, 255, 255, 0.3) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     opacity: 0;
     transition: opacity 0.3s var(--transition-smooth);
@@ -274,22 +376,27 @@ body {
     padding: 1px;
     background: conic-gradient(
         from var(--rainbow-angle),
-        #ff0080 0deg,
-        #ff8000 45deg,
-        #ffff00 90deg,
-        #80ff00 135deg,
-        #00ff80 180deg,
-        #00ffff 225deg,
-        #0080ff 270deg,
-        #8000ff 315deg,
-        #ff0080 360deg
+        var(--lemon-chiffon) 0deg,
+        var(--powder-petal) 36deg,
+        var(--cotton-rose) 72deg,
+        var(--pink-orchid) 108deg,
+        var(--mauve) 144deg,
+        var(--baby-blue-ice) 180deg,
+        var(--frosted-blue) 216deg,
+        var(--electric-aqua) 252deg,
+        var(--aquamarine) 288deg,
+        var(--celadon) 324deg,
+        var(--lemon-chiffon) 360deg
     );
     -webkit-mask: 
         linear-gradient(#fff 0 0) content-box, 
         linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
     mask-composite: exclude;
-    opacity: 0;
+    opacity: 1;
     animation: rotateRainbowGradient 3s linear infinite;
     pointer-events: none;
     z-index: 0;
@@ -336,6 +443,15 @@ body {
     pointer-events: none;
 }
 
+.email-icon-svg-wrapper {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .email-icon-svg {
     width: 44px;
     height: 44px;
@@ -343,6 +459,17 @@ body {
     stroke: currentColor;
     transition: color 0.2s var(--transition-smooth);
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.email-icon-path-border {
+    opacity: 1;
+}
+
+.email-icon-path {
+    position: relative;
+    z-index: 1;
 }
 
 .email-icon-container:hover .email-icon-svg {
@@ -436,31 +563,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 720px;
-    /* REVERT: Change back to rgba(180, 185, 195, 0.05) */
-    background: rgba(180, 185, 195, var(--glass-panel-opacity));
-    backdrop-filter: blur(40px) saturate(1.8);
-    -webkit-backdrop-filter: blur(40px) saturate(1.8);
     border-radius: 20px;
-    box-shadow: var(--glass-shadow);
     overflow: visible;
-    
-    /* Fade-in effect from edges (photo visible) to center (clear glass) */
-    -webkit-mask-image: radial-gradient(
-        ellipse 100% 100% at center,
-        rgba(0, 0, 0, 1) 40%,
-        rgba(0, 0, 0, 0.85) 60%,
-        rgba(0, 0, 0, 0.6) 75%,
-        rgba(0, 0, 0, 0.3) 90%,
-        rgba(0, 0, 0, 0) 100%
-    );
-    mask-image: radial-gradient(
-        ellipse 100% 100% at center,
-        rgba(0, 0, 0, 1) 40%,
-        rgba(0, 0, 0, 0.85) 60%,
-        rgba(0, 0, 0, 0.6) 75%,
-        rgba(0, 0, 0, 0.3) 90%,
-        rgba(0, 0, 0, 0) 100%
-    );
     
     /* Entrance animation - default state */
     opacity: 0;
@@ -469,9 +573,132 @@ body {
                 transform 0.6s var(--transition-spring) 0.2s;
 }
 
+/* Background layer with mask - separate from text content */
+.glass-letter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(180, 185, 195, var(--glass-panel-opacity));
+    -webkit-backdrop-filter: blur(36px) saturate(1.6);
+    backdrop-filter: blur(36px) saturate(1.6);
+    border-radius: 20px;
+    box-shadow: var(--glass-shadow);
+    z-index: 0;
+    
+    /* Fade-in effect from edges (photo visible) to center (clear glass) */
+    -webkit-mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.8) 40%,
+        rgba(0, 0, 0, 0.8) 60%,
+        rgba(0, 0, 0, 0.612) 75%,
+        rgba(0, 0, 0, 0.307) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.8) 40%,
+        rgba(0, 0, 0, 0.8) 60%,
+        rgba(0, 0, 0, 0.612) 75%,
+        rgba(0, 0, 0, 0.307) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+}
+
+/* Rotating hue overlay for glass letter background opacity */
+.glass-letter {
+    --rainbow-angle: 0deg;
+}
+
+/* Rotating hue overlay for glass letter background opacity */
+.glass-letter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from var(--rainbow-angle),
+        rgba(251, 248, 204, 0.1) 0deg,
+        rgba(253, 228, 207, 0.1) 36deg,
+        rgba(255, 207, 210, 0.1) 72deg,
+        rgba(241, 192, 232, 0.1) 108deg,
+        rgba(207, 186, 240, 0.1) 144deg,
+        rgba(163, 196, 243, 0.1) 180deg,
+        rgba(144, 219, 244, 0.1) 216deg,
+        rgba(142, 236, 245, 0.1) 252deg,
+        rgba(152, 245, 225, 0.1) 288deg,
+        rgba(185, 251, 192, 0.1) 324deg,
+        rgba(251, 248, 204, 0.1) 360deg
+    );
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    animation: rotateRainbowGradientSlow 21s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 20px;
+}
+
 .letter-overlay.visible .glass-letter:not(.expanding) {
     opacity: 1;
     transform: scale(1) translateY(0);
+}
+
+/* ========================================
+   A/B Test Classes - Visual Comparison
+======================================== */
+
+/* Test A: Reduced backdrop filter (blur/saturate) - Radial mask stays the same */
+.glass-letter.test-a::after {
+    -webkit-backdrop-filter: blur(10px) saturate(0.5);
+    backdrop-filter: blur(10px) saturate(0.5);
+    /* Radial mask gradient remains unchanged */
+}
+
+/* Test B: Reduced radial mask gradient - Backdrop filter stays the same */
+.glass-letter.test-b::after {
+    /* Backdrop filter remains unchanged */
+    -webkit-mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0.2) 60%,
+        rgba(0, 0, 0, 0.1) 75%,
+        rgba(0, 0, 0, 0.05) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0.2) 60%,
+        rgba(0, 0, 0, 0.1) 75%,
+        rgba(0, 0, 0, 0.05) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+}
+
+/* Test C: Combined - Test A backdrop filter + slightly stronger radial mask than Test B */
+.glass-letter.test-c::after {
+    -webkit-backdrop-filter: blur(10px) saturate(0.5);
+    backdrop-filter: blur(10px) saturate(0.5);
+    -webkit-mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.4) 40%,
+        rgba(0, 0, 0, 0.3) 60%,
+        rgba(0, 0, 0, 0.15) 75%,
+        rgba(0, 0, 0, 0.08) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 0.4) 40%,
+        rgba(0, 0, 0, 0.3) 60%,
+        rgba(0, 0, 0, 0.15) 75%,
+        rgba(0, 0, 0, 0.08) 90%,
+        rgba(0, 0, 0, 0) 100%
+    );
 }
 
 /* Subtle inner highlight */
@@ -488,13 +715,38 @@ body {
         rgba(255, 255, 255, 0.3) 50%,
         transparent 100%
     );
+    z-index: 1;
+    pointer-events: none;
 }
 
 /* ========================================
    Letter Content
 ======================================== */
 .letter-content {
+    position: relative;
     padding: 24px 28px 24px;
+    z-index: 2;
+}
+
+/* Edge fade overlay - fades inward from all 4 edges (stronger and wider) */
+.letter-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--letter-overlay-gradient);
+    z-index: 1;
+    pointer-events: none;
+    border-radius: 16px;
+}
+
+/* Ensure content is above the overlay */
+.letter-content > * {
+    position: relative;
+    z-index: 2;
+    opacity: 1;
 }
 
 /* ========================================
@@ -504,6 +756,8 @@ body {
     margin-bottom: 13px;
     padding-bottom: 11px;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    letter-spacing: 0.02em;
     
     /* Hidden until JS triggers */
     opacity: 0;
@@ -513,7 +767,7 @@ body {
 }
 
 .email-meta.visible {
-    opacity: 1;
+    opacity: 1 !important;
     transform: translateY(0);
 }
 
@@ -522,9 +776,10 @@ body {
     align-items: baseline;
     gap: 6px;
     margin-bottom: 2px;
-    font-family: var(--font-system);
+    font-family: 'Roboto Mono', 'Courier New', monospace;
     font-size: 11px;
     line-height: 1.35;
+    letter-spacing: 0.02em;
 }
 
 .meta-row:last-child {
@@ -535,17 +790,55 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     min-width: 48px;
+    opacity: 1;
 }
 
 .meta-value {
     font-weight: 400;
     color: var(--text-secondary);
+    opacity: 1;
+}
+
+/* Hue effect only for "Hyeonwoo Park" in first meta-row */
+.meta-row:first-child .meta-value {
+    background: linear-gradient(
+        90deg,
+        var(--text-secondary) 0%,
+        var(--lemon-chiffon) 20%,
+        var(--powder-petal) 30%,
+        var(--cotton-rose) 40%,
+        var(--pink-orchid) 50%,
+        var(--mauve) 60%,
+        var(--baby-blue-ice) 70%,
+        var(--frosted-blue) 80%,
+        var(--electric-aqua) 90%,
+        var(--text-secondary) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: metaValueHueFlow 7.77s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    will-change: background-position;
+}
+
+@keyframes metaValueHueFlow {
+    0% {
+        background-position: 200% 50%;
+    }
+    50% {
+        background-position: -100% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
 }
 
 #email-subject {
     font-weight: 500;
     font-size: 13px;
     color: var(--text-primary);
+    opacity: 1;
 }
 
 /* ========================================
@@ -565,6 +858,11 @@ body {
     overflow: visible;
     /* Enhanced readability with more transparent background */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    opacity: 1;
+}
+
+.email-body * {
+    opacity: 1;
 }
 
 .email-body p {
@@ -572,6 +870,7 @@ body {
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: normal;
+    opacity: 1;
 }
 
 .email-body .email-header,
@@ -583,6 +882,7 @@ body {
     margin-top: 0;
     font-family: var(--font-system);
     letter-spacing: -0.01em;
+    opacity: 1;
 }
 
 .email-body p:last-child {
@@ -594,6 +894,7 @@ body {
     display: inline-block;
     position: relative;
     transition: transform 0.05s ease-out;
+    opacity: 1;
 }
 
 .split-flap-char.flipping {
@@ -641,7 +942,7 @@ body {
 }
 
 .email-signature.visible {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
 .email-signature .signature-name {
@@ -650,6 +951,7 @@ body {
     font-weight: 500;
     color: var(--text-primary);
     letter-spacing: -0.01em;
+    opacity: 1;
 }
 
 /* ========================================
@@ -689,7 +991,7 @@ body {
 }
 
 .letter-continue.visible {
-    opacity: 1;
+    opacity: 1 !important;
     transform: translateY(0);
 }
 
@@ -698,10 +1000,56 @@ body {
     --edge-x: 50%;
     --edge-y: 50%;
     --glow: 0;
-    --hue: 0;
     /* Offset from center in pixels - calculated by JS */
     --shadow-x: 0px;
     --shadow-y: 0px;
+    /* Color palette for edge glow - cycling through palette */
+    --glow-color-1: 251, 248, 204;
+    --glow-color-2: 255, 207, 210;
+    --glow-color-3: 207, 186, 240;
+    --glow-color-4: 144, 219, 244;
+    /* Rotating rainbow border */
+    --rainbow-angle: 0deg;
+}
+
+/* Inward rotating rainbow border */
+.letter-continue::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+        from var(--rainbow-angle),
+        var(--lemon-chiffon) 0deg,
+        var(--powder-petal) 36deg,
+        var(--cotton-rose) 72deg,
+        var(--pink-orchid) 108deg,
+        var(--mauve) 144deg,
+        var(--baby-blue-ice) 180deg,
+        var(--frosted-blue) 216deg,
+        var(--electric-aqua) 252deg,
+        var(--aquamarine) 288deg,
+        var(--celadon) 324deg,
+        var(--lemon-chiffon) 360deg
+    );
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    animation: rotateRainbowGradient 4.35s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.3s var(--transition-smooth);
+}
+
+.letter-continue:hover::before {
+    opacity: 1;
 }
 
 /* Prismatic edge glow using positioned box-shadow */
@@ -714,113 +1062,184 @@ body {
     z-index: -1;
     background: transparent;
     
-    /* Multi-colored box-shadows offset toward edge point */
+    /* Multi-colored box-shadows offset toward edge point using palette colors */
     /* These naturally appear ONLY on the outer edge */
     box-shadow: 
-        var(--shadow-x) var(--shadow-y) 12px 0px hsla(calc(var(--hue)), 85%, 60%, calc(var(--glow) * 0.7)),
-        var(--shadow-x) var(--shadow-y) 20px 2px hsla(calc(var(--hue) + 60), 80%, 55%, calc(var(--glow) * 0.5)),
-        var(--shadow-x) var(--shadow-y) 28px 4px hsla(calc(var(--hue) + 120), 75%, 50%, calc(var(--glow) * 0.35)),
-        var(--shadow-x) var(--shadow-y) 36px 6px hsla(calc(var(--hue) + 180), 70%, 50%, calc(var(--glow) * 0.2));
+        var(--shadow-x) var(--shadow-y) 12px 0px rgba(var(--glow-color-1), calc(var(--glow) * 0.7)),
+        var(--shadow-x) var(--shadow-y) 20px 2px rgba(var(--glow-color-2), calc(var(--glow) * 0.5)),
+        var(--shadow-x) var(--shadow-y) 28px 4px rgba(var(--glow-color-3), calc(var(--glow) * 0.35)),
+        var(--shadow-x) var(--shadow-y) 36px 6px rgba(var(--glow-color-4), calc(var(--glow) * 0.2));
     
-    animation: hueFlow 4s linear infinite;
+    animation: colorFlow 4s linear infinite;
 }
 
-@keyframes hueFlow {
-    from { --hue: 0; }
-    to { --hue: 360; }
-}
-
-@property --hue {
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 0;
+@keyframes colorFlow {
+    0% { 
+        --glow-color-1: 251, 248, 204;
+        --glow-color-2: 255, 207, 210;
+        --glow-color-3: 207, 186, 240;
+        --glow-color-4: 144, 219, 244;
+    }
+    11.11% {
+        --glow-color-1: 253, 228, 207;
+        --glow-color-2: 241, 192, 232;
+        --glow-color-3: 163, 196, 243;
+        --glow-color-4: 142, 236, 245;
+    }
+    22.22% {
+        --glow-color-1: 255, 207, 210;
+        --glow-color-2: 207, 186, 240;
+        --glow-color-3: 144, 219, 244;
+        --glow-color-4: 152, 245, 225;
+    }
+    33.33% {
+        --glow-color-1: 241, 192, 232;
+        --glow-color-2: 163, 196, 243;
+        --glow-color-3: 142, 236, 245;
+        --glow-color-4: 185, 251, 192;
+    }
+    44.44% {
+        --glow-color-1: 207, 186, 240;
+        --glow-color-2: 144, 219, 244;
+        --glow-color-3: 152, 245, 225;
+        --glow-color-4: 251, 248, 204;
+    }
+    55.55% {
+        --glow-color-1: 163, 196, 243;
+        --glow-color-2: 142, 236, 245;
+        --glow-color-3: 185, 251, 192;
+        --glow-color-4: 253, 228, 207;
+    }
+    66.66% {
+        --glow-color-1: 144, 219, 244;
+        --glow-color-2: 152, 245, 225;
+        --glow-color-3: 251, 248, 204;
+        --glow-color-4: 255, 207, 210;
+    }
+    77.77% {
+        --glow-color-1: 142, 236, 245;
+        --glow-color-2: 185, 251, 192;
+        --glow-color-3: 253, 228, 207;
+        --glow-color-4: 241, 192, 232;
+    }
+    88.88% {
+        --glow-color-1: 152, 245, 225;
+        --glow-color-2: 251, 248, 204;
+        --glow-color-3: 255, 207, 210;
+        --glow-color-4: 207, 186, 240;
+    }
+    100% {
+        --glow-color-1: 185, 251, 192;
+        --glow-color-2: 253, 228, 207;
+        --glow-color-3: 241, 192, 232;
+        --glow-color-4: 163, 196, 243;
+    }
 }
 
 .letter-continue > span,
 .letter-continue .continue-arrow {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
-/* Default state - static white text */
+/* Default state - liquid prismatic flow always active */
 .letter-continue > span {
-    color: var(--text-primary);
+    background: linear-gradient(
+        90deg,
+        var(--lemon-chiffon) 0%,
+        var(--powder-petal) 11.11%,
+        var(--cotton-rose) 22.22%,
+        var(--pink-orchid) 33.33%,
+        var(--mauve) 44.44%,
+        var(--baby-blue-ice) 55.55%,
+        var(--frosted-blue) 66.66%,
+        var(--electric-aqua) 77.77%,
+        var(--aquamarine) 88.88%,
+        var(--celadon) 100%,
+        var(--lemon-chiffon) 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    animation: liquidFlow 7.77s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    will-change: background-position;
 }
 
 .letter-continue .continue-arrow {
     stroke: var(--text-primary);
-    transition: all 0.3s ease;
-}
-
-/* Hover - liquid prismatic flow activates */
-.letter-continue:hover > span {
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 1) 0%,
-        rgba(230, 180, 200, 1) 12.5%,
-        rgba(230, 200, 170, 1) 25%,
-        rgba(180, 220, 180, 1) 37.5%,
-        rgba(170, 210, 220, 1) 50%,
-        rgba(180, 190, 230, 1) 62.5%,
-        rgba(210, 180, 220, 1) 75%,
-        rgba(230, 180, 210, 1) 87.5%,
-        rgba(255, 255, 255, 1) 100%
-    );
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: liquidFlow 2.5s linear infinite;
-}
-
-.letter-continue:hover .continue-arrow {
-    animation: arrowLiquidFlow 2.5s linear infinite;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    animation: arrowLiquidFlow 7.77s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    will-change: stroke, filter;
 }
 
 @keyframes liquidFlow {
     0% {
-        background-position: 200% 50%;
+        background-position: 300% 50%;
+    }
+    50% {
+        background-position: -100% 50%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 300% 50%;
     }
 }
 
-/* Arrow color synced - muted prismatic tones */
+/* Arrow color synced - fluid liquid metal tones */
 @keyframes arrowLiquidFlow {
-    0%, 100% {
-        stroke: rgba(255, 255, 255, 1);
-        filter: drop-shadow(0 0 2px rgba(230, 180, 200, 0.5));
+    0% {
+        stroke: var(--lemon-chiffon);
+        filter: drop-shadow(0 0 3px rgba(251, 248, 204, 0.7));
+        transform: translateX(0);
     }
-    12.5% {
-        stroke: rgba(230, 180, 200, 1);
-        filter: drop-shadow(0 0 2px rgba(230, 180, 200, 0.6));
+    11.11% {
+        stroke: var(--powder-petal);
+        filter: drop-shadow(0 0 3px rgba(253, 228, 207, 0.7));
+        transform: translateX(0.5px);
     }
-    25% {
-        stroke: rgba(230, 200, 170, 1);
-        filter: drop-shadow(0 0 2px rgba(230, 200, 170, 0.6));
+    22.22% {
+        stroke: var(--cotton-rose);
+        filter: drop-shadow(0 0 3px rgba(255, 207, 210, 0.7));
+        transform: translateX(1px);
     }
-    37.5% {
-        stroke: rgba(180, 220, 180, 1);
-        filter: drop-shadow(0 0 2px rgba(180, 220, 180, 0.6));
+    33.33% {
+        stroke: var(--pink-orchid);
+        filter: drop-shadow(0 0 3px rgba(241, 192, 232, 0.7));
+        transform: translateX(1.5px);
     }
-    50% {
-        stroke: rgba(170, 210, 220, 1);
-        filter: drop-shadow(0 0 2px rgba(170, 210, 220, 0.6));
+    44.44% {
+        stroke: var(--mauve);
+        filter: drop-shadow(0 0 3px rgba(207, 186, 240, 0.7));
+        transform: translateX(2px);
     }
-    62.5% {
-        stroke: rgba(180, 190, 230, 1);
-        filter: drop-shadow(0 0 2px rgba(180, 190, 230, 0.6));
+    55.55% {
+        stroke: var(--baby-blue-ice);
+        filter: drop-shadow(0 0 3px rgba(163, 196, 243, 0.7));
+        transform: translateX(2.5px);
     }
-    75% {
-        stroke: rgba(210, 180, 220, 1);
-        filter: drop-shadow(0 0 2px rgba(210, 180, 220, 0.6));
+    66.66% {
+        stroke: var(--frosted-blue);
+        filter: drop-shadow(0 0 3px rgba(144, 219, 244, 0.7));
+        transform: translateX(3px);
     }
-    87.5% {
-        stroke: rgba(230, 180, 210, 1);
-        filter: drop-shadow(0 0 2px rgba(230, 180, 210, 0.6));
+    77.77% {
+        stroke: var(--electric-aqua);
+        filter: drop-shadow(0 0 3px rgba(142, 236, 245, 0.7));
+        transform: translateX(2.5px);
+    }
+    88.88% {
+        stroke: var(--aquamarine);
+        filter: drop-shadow(0 0 3px rgba(152, 245, 225, 0.7));
+        transform: translateX(2px);
+    }
+    100% {
+        stroke: var(--celadon);
+        filter: drop-shadow(0 0 3px rgba(185, 251, 192, 0.7));
+        transform: translateX(0);
     }
 }
 
@@ -1189,5 +1608,75 @@ body {
         width: 28px;
         height: 28px;
         font-size: 20px;
+    }
+}
+
+/* ========================================
+   Fireworks Effect
+======================================== */
+.fireworks-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 4;
+    overflow: hidden;
+}
+
+.firework-rocket {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9),
+                0 0 12px rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+    will-change: transform;
+    mix-blend-mode: screen;
+}
+
+.firework-spark {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    mix-blend-mode: screen;
+    filter: blur(0.5px);
+}
+
+.firework-flash {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(255, 255, 255, 1) 0%, 
+        rgba(255, 255, 255, 0.95) 15%,
+        rgba(255, 255, 255, 0.8) 30%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.2) 70%,
+        rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: flashBloom 0.15s cubic-bezier(0.4, 0, 1, 1) forwards;
+    mix-blend-mode: screen;
+    filter: blur(1.5px);
+    transform: translate(-50%, -50%);
+}
+
+@keyframes flashBloom {
+    0% {
+        transform: scale(0) translate(-50%, -50%);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(2.5) translate(-50%, -50%);
+        opacity: 0;
     }
 }

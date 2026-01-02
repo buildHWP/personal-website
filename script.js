@@ -415,6 +415,18 @@
         const btn = elements.letterContinue;
         if (!btn) return;
 
+        // Initialize fireworks for continue button
+        initFireworks();
+        
+        // Fireworks on hover for continue button
+        btn.addEventListener('mouseenter', () => {
+            startContinueFireworks(btn);
+        });
+        
+        btn.addEventListener('mouseleave', () => {
+            stopContinueFireworks();
+        });
+
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initButtonEffects',message:'initButtonEffects called',data:{btnExists:!!btn},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
         // #endregion
@@ -808,10 +820,522 @@
     }
 
     // ========================================
+    // Animate SVG Gradient Rotation
+    // ========================================
+    function initSvgGradientAnimation() {
+        const svg = elements.emailIcon?.querySelector('.email-icon-svg');
+        if (!svg) return;
+        
+        const gradient = svg.querySelector('#rainbow-gradient');
+        if (!gradient) return;
+        
+        const centerX = 12;
+        const centerY = 12;
+        const duration = 6000; // 6 seconds per rotation (half speed)
+        
+        let startTime = null;
+        
+        function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            const angle = (elapsed / duration) * 360 % 360;
+            gradient.setAttribute('gradientTransform', `rotate(${angle} ${centerX} ${centerY})`);
+            requestAnimationFrame(animate);
+        }
+        
+        requestAnimationFrame(animate);
+    }
+
+    // ========================================
+    // Fireworks Effect
+    // ========================================
+    const FIREWORKS_CONFIG = {
+        initialBurstMin: 5,
+        initialBurstMax: 7,
+        subsequentBurst: 1,
+        initialDelay: 0,          // No delay - start immediately
+        burstInterval: 2000,      // 2000ms = even slower sustained bursts (40% reduction)
+        rocketStagger: 200,       // Max stagger between rockets in a burst
+        sparkStagger: 50,         // Max stagger between sparks
+        maxActiveSparks: 180,     // Reduced from 300 to 180 (40% reduction)
+        colors: [
+            { name: 'white', value: 'rgba(255, 255, 255, 1)', rgb: '255, 255, 255' },
+            { name: 'gold', value: 'rgba(255, 215, 0, 1)', rgb: '255, 215, 0' },
+            { name: 'yellow', value: 'rgba(255, 255, 0, 1)', rgb: '255, 255, 0' },
+            { name: 'red', value: 'rgba(255, 50, 50, 1)', rgb: '255, 50, 50' },
+            { name: 'pink', value: 'rgba(255, 105, 180, 1)', rgb: '255, 105, 180' },
+            { name: 'cyan', value: 'rgba(0, 255, 255, 1)', rgb: '0, 255, 255' },
+            { name: 'blue', value: 'rgba(100, 200, 255, 1)', rgb: '100, 200, 255' },
+            { name: 'lime', value: 'rgba(200, 255, 0, 1)', rgb: '200, 255, 0' },
+            { name: 'green', value: 'rgba(0, 255, 100, 1)', rgb: '0, 255, 100' }
+        ],
+        sizeTiers: {
+            small: { weight: 60, sparks: 9, radius: 80, lifetime: 1000, gravity: 0.3, sparkSizeMin: 2, sparkSizeMax: 3 },
+            medium: { weight: 30, sparks: 18, radius: 140, lifetime: 1300, gravity: 0.4, sparkSizeMin: 3, sparkSizeMax: 4 },
+            large: { weight: 10, sparks: 30, radius: 220, lifetime: 1600, gravity: 0.5, sparkSizeMin: 4, sparkSizeMax: 5 }
+        },
+        fireworkStyles: ['radial', 'ring', 'spiral', 'willow', 'crackle', 'crossette']
+    };
+
+    let fireworksContainer = null;
+    let burstInterval = null;
+    let isHovering = false;
+    // Separate state for continue button fireworks
+    let continueBurstInterval = null;
+    let isContinueHovering = false;
+    // Performance tracking
+    let activeSparkCount = 0;
+
+    function initFireworks() {
+        // Create fireworks container
+        fireworksContainer = document.createElement('div');
+        fireworksContainer.className = 'fireworks-container';
+        document.body.appendChild(fireworksContainer);
+    }
+
+    function getRandomSizeTier() {
+        const rand = Math.random() * 100;
+        if (rand < FIREWORKS_CONFIG.sizeTiers.small.weight) return 'small';
+        if (rand < FIREWORKS_CONFIG.sizeTiers.small.weight + FIREWORKS_CONFIG.sizeTiers.medium.weight) return 'medium';
+        return 'large';
+    }
+
+    function getRandomColor() {
+        return FIREWORKS_CONFIG.colors[Math.floor(Math.random() * FIREWORKS_CONFIG.colors.length)];
+    }
+
+    function randomRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    // Weighted random for distance - scales with angle and screen width
+    // At 0° (straight up): max 200px
+    // As angle approaches ±90° (horizontal): max distance increases with screen width
+    function getRandomDistance(angle) {
+        const screenWidth = window.innerWidth;
+        const angleDegrees = Math.abs(angle * 180 / Math.PI); // Convert to degrees, absolute value
+        
+        // Base distance for straight up (0°): up to 200px
+        const baseMax = 200;
+        
+        // For horizontal angles, scale max distance based on screen width
+        // At ±90°, can reach up to 40% of screen width
+        const horizontalMax = screenWidth * 0.4;
+        
+        // Interpolate max distance based on angle (0° = baseMax, 90° = horizontalMax)
+        const angleFactor = angleDegrees / 90; // 0 to 1
+        const maxDistance = baseMax + (horizontalMax - baseMax) * Math.pow(angleFactor, 1.5);
+        
+        // Minimum distance scales slightly with angle too
+        const minDistance = 90 + (angleFactor * 50); // 90px to 140px
+        
+        // Probability distribution: favor medium-high distances when horizontal
+        const rand = Math.random();
+        
+        if (angleFactor < 0.3) {
+            // More vertical (0-27°): original distribution
+            if (rand < 0.5) return randomRange(minDistance, minDistance + (maxDistance - minDistance) * 0.3);
+            if (rand < 0.8) return randomRange(minDistance + (maxDistance - minDistance) * 0.3, minDistance + (maxDistance - minDistance) * 0.7);
+            return randomRange(minDistance + (maxDistance - minDistance) * 0.7, maxDistance);
+        } else {
+            // More horizontal (27-90°): favor medium-high distances
+            if (rand < 0.2) return randomRange(minDistance, minDistance + (maxDistance - minDistance) * 0.3);
+            if (rand < 0.5) return randomRange(minDistance + (maxDistance - minDistance) * 0.3, minDistance + (maxDistance - minDistance) * 0.7);
+            return randomRange(minDistance + (maxDistance - minDistance) * 0.7, maxDistance); // 50% chance for high distances
+        }
+    }
+
+    function launchRocket(button, delay = 0) {
+        setTimeout(() => {
+            const rect = button.getBoundingClientRect();
+            const launchX = rect.left + rect.width / 2;
+            const launchY = rect.bottom - 10; // Near bottom of button
+            
+            const angle = (Math.random() * 180 - 90) * Math.PI / 180; // -90° to +90°
+            const distance = getRandomDistance(angle);
+            const duration = randomRange(520, 980);
+            
+            const rocket = document.createElement('div');
+            rocket.className = 'firework-rocket';
+            rocket.style.left = launchX + 'px';
+            rocket.style.top = launchY + 'px';
+            fireworksContainer.appendChild(rocket);
+            
+            // Calculate end position
+            const endX = launchX + Math.sin(angle) * distance;
+            const endY = launchY - Math.cos(angle) * distance;
+            
+            // Create wiggling path
+            const wiggleAmplitude = 8;
+            const wiggleFrequency = 0.02;
+            let wigglePhase = 0;
+            const startTime = performance.now();
+            
+            function animateRocket(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                if (progress >= 1) {
+                    // Rocket reached apex - explode
+                    explode(endX, endY);
+                    rocket.remove();
+                    return;
+                }
+                
+                // Decaying wiggle
+                const decay = 1 - progress;
+                const wiggle = Math.sin(wigglePhase) * wiggleAmplitude * decay;
+                wigglePhase += wiggleFrequency * 16;
+                
+                // Rotation
+                const rotation = progress * 180;
+                
+                // Position with wiggle
+                const currentX = launchX + (endX - launchX) * progress + wiggle * Math.cos(angle + Math.PI / 2);
+                const currentY = launchY + (endY - launchY) * progress;
+                
+                rocket.style.transform = `translate(-50%, -50%) translate(${currentX - launchX}px, ${currentY - launchY}px) rotate(${rotation}deg)`;
+                
+                requestAnimationFrame(animateRocket);
+            }
+            
+            requestAnimationFrame(animateRocket);
+        }, delay);
+    }
+
+    function explode(x, y) {
+        const tier = getRandomSizeTier();
+        const config = FIREWORKS_CONFIG.sizeTiers[tier];
+        const style = FIREWORKS_CONFIG.fireworkStyles[Math.floor(Math.random() * FIREWORKS_CONFIG.fireworkStyles.length)];
+        
+        // Flash bloom
+        const flash = document.createElement('div');
+        flash.className = 'firework-flash';
+        flash.style.left = x + 'px';
+        flash.style.top = y + 'px';
+        flash.style.transform = 'translate(-50%, -50%)';
+        fireworksContainer.appendChild(flash);
+        setTimeout(() => flash.remove(), 150);
+        
+        // Create sparks based on style
+        createSparks(x, y, style, config);
+    }
+
+    function createSparks(x, y, style, config) {
+        const baseColor = getRandomColor();
+        const sparkDelay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+        
+        switch (style) {
+            case 'radial':
+                createRadialSparks(x, y, config, baseColor);
+                break;
+            case 'ring':
+                createRingSparks(x, y, config, baseColor);
+                break;
+            case 'spiral':
+                createSpiralSparks(x, y, config, baseColor);
+                break;
+            case 'willow':
+                createWillowSparks(x, y, config, baseColor);
+                break;
+            case 'crackle':
+                createCrackleSparks(x, y, config, baseColor);
+                break;
+            case 'crossette':
+                createCrossetteSparks(x, y, config, baseColor);
+                break;
+        }
+    }
+
+    function createRadialSparks(x, y, config, baseColor) {
+        for (let i = 0; i < config.sparks; i++) {
+            const angle = (Math.PI * 2 * i) / config.sparks;
+            const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+            createSpark(x, y, angle, config, baseColor, delay);
+        }
+    }
+
+    function createRingSparks(x, y, config, baseColor) {
+        const ringCount = 2;
+        for (let ring = 0; ring < ringCount; ring++) {
+            const ringRadius = (ring + 1) * (config.radius / ringCount);
+            const sparksPerRing = Math.floor(config.sparks / ringCount);
+            for (let i = 0; i < sparksPerRing; i++) {
+                const angle = (Math.PI * 2 * i) / sparksPerRing;
+                const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+                createSpark(x, y, angle, config, baseColor, delay, ringRadius);
+            }
+        }
+    }
+
+    function createSpiralSparks(x, y, config, baseColor) {
+        const arms = config.sparks > 50 ? 3 : 2;
+        const sparksPerArm = Math.floor(config.sparks / arms);
+        for (let arm = 0; arm < arms; arm++) {
+            const armAngle = (Math.PI * 2 * arm) / arms;
+            for (let i = 0; i < sparksPerArm; i++) {
+                const spiralProgress = i / sparksPerArm;
+                const angle = armAngle + spiralProgress * Math.PI * 2;
+                const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+                createSpark(x, y, angle, config, baseColor, delay, null, spiralProgress);
+            }
+        }
+    }
+
+    function createWillowSparks(x, y, config, baseColor) {
+        for (let i = 0; i < config.sparks; i++) {
+            const angle = randomRange(-Math.PI / 2, Math.PI / 2); // Mostly downward
+            const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+            createSpark(x, y, angle, config, baseColor, delay, null, null, true);
+        }
+    }
+
+    function createCrackleSparks(x, y, config, baseColor) {
+        // Initial burst
+        const initialSparks = Math.floor(config.sparks * 0.4);
+        for (let i = 0; i < initialSparks; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            createSpark(x, y, angle, config, baseColor, 0);
+        }
+        
+        // Delayed micro-bursts
+        const microBursts = 3 + Math.floor(Math.random() * 3);
+        for (let burst = 0; burst < microBursts; burst++) {
+            const delay = randomRange(100, 300) * (burst + 1);
+            const burstX = x + randomRange(-20, 20);
+            const burstY = y + randomRange(-20, 20);
+            const sparksPerBurst = Math.floor((config.sparks - initialSparks) / microBursts);
+            
+            for (let i = 0; i < sparksPerBurst; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                createSpark(burstX, burstY, angle, config, baseColor, delay);
+            }
+        }
+    }
+
+    function createCrossetteSparks(x, y, config, baseColor) {
+        const splitRatio = 0.3; // 30% of sparks will split
+        const normalSparks = Math.floor(config.sparks * (1 - splitRatio));
+        const splitSparks = config.sparks - normalSparks;
+        
+        // Normal sparks
+        for (let i = 0; i < normalSparks; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+            createSpark(x, y, angle, config, baseColor, delay);
+        }
+        
+        // Splitting sparks
+        for (let i = 0; i < splitSparks; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const delay = randomRange(0, FIREWORKS_CONFIG.sparkStagger);
+            const splitDelay = randomRange(200, 400);
+            createSpark(x, y, angle, config, baseColor, delay, null, null, false, splitDelay);
+        }
+    }
+
+    function createSpark(startX, startY, angle, config, baseColor, delay, customRadius = null, spiralProgress = null, isWillow = false, splitDelay = null) {
+        setTimeout(() => {
+            // Performance limit: skip creating spark if too many active
+            if (activeSparkCount >= FIREWORKS_CONFIG.maxActiveSparks) {
+                return;
+            }
+            
+            const spark = document.createElement('div');
+            spark.className = 'firework-spark';
+            
+            const color = Math.random() < 0.3 ? baseColor : getRandomColor();
+            // Random spark size within tier range (2-5px as per spec)
+            const sparkSize = randomRange(config.sparkSizeMin, config.sparkSizeMax);
+            
+            spark.style.background = color.value;
+            spark.style.width = sparkSize + 'px';
+            spark.style.height = sparkSize + 'px';
+            spark.style.left = startX + 'px';
+            spark.style.top = startY + 'px';
+            // Ultra-lightweight: minimal glow, no box-shadow for better performance
+            spark.style.willChange = 'transform, opacity';
+            spark.style.transform = 'translate3d(-50%, -50%, 0)'; // GPU acceleration
+            // Use filter for lighter glow effect instead of box-shadow
+            spark.style.filter = `drop-shadow(0 0 ${sparkSize * 0.8}px ${color.value})`;
+            
+            fireworksContainer.appendChild(spark);
+            activeSparkCount++;
+            
+            const radius = customRadius || config.radius;
+            const velocity = randomRange(0.8, 1.2);
+            const finalX = startX + Math.cos(angle) * radius * velocity;
+            const finalY = startY + Math.sin(angle) * radius * velocity;
+            
+            const startTime = performance.now();
+            const lifetime = config.lifetime;
+            let wigglePhase = Math.random() * Math.PI * 2;
+            let wiggleAmplitude = randomRange(2, 5);
+            
+            function animateSpark(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / lifetime, 1);
+                
+                if (progress >= 1) {
+                    spark.remove();
+                    activeSparkCount--;
+                    return;
+                }
+                
+                // Easing: fast out, slow decay
+                const eased = 1 - Math.pow(1 - progress, 2);
+                
+                // Position
+                let currentX = startX + (finalX - startX) * eased;
+                let currentY = startY + (finalY - startY) * eased;
+                
+                // Gravity (stronger for willow)
+                const gravity = isWillow ? config.gravity * 1.5 : config.gravity;
+                currentY += gravity * elapsed * elapsed * 0.001;
+                
+                // Willow sideways drift
+                if (isWillow && progress > 0.5) {
+                    currentX += Math.sin(elapsed * 0.01) * 2 * (progress - 0.5);
+                }
+                
+                // Reduced micro-wiggle (40% less frequent updates for better performance)
+                const wiggleDecay = 1 - progress;
+                const wiggleX = Math.sin(wigglePhase) * wiggleAmplitude * wiggleDecay * 0.6; // 40% reduction
+                const wiggleY = Math.cos(wigglePhase * 1.3) * wiggleAmplitude * wiggleDecay * 0.6; // 40% reduction
+                wigglePhase += 0.06; // Slower phase update (40% reduction)
+                
+                currentX += wiggleX;
+                currentY += wiggleY;
+                
+                // Spiral rotation - reduced intensity for 40% better performance
+                if (spiralProgress !== null) {
+                    const spiralAngle = spiralProgress * Math.PI * 4 + elapsed * 0.006; // 40% slower
+                    const spiralOffsetX = Math.cos(spiralAngle) * 6 * (1 - progress); // 40% reduction
+                    const spiralOffsetY = Math.sin(spiralAngle) * 6 * (1 - progress); // 40% reduction
+                    currentX += spiralOffsetX;
+                    currentY += spiralOffsetY;
+                }
+                
+                // Aggressive viewport culling: skip DOM updates if spark is far off-screen
+                const viewportPadding = 100; // Further reduced padding (40% reduction)
+                const isOffScreen = currentX < -viewportPadding || currentX > window.innerWidth + viewportPadding ||
+                    currentY < -viewportPadding || currentY > window.innerHeight + viewportPadding;
+                
+                if (isOffScreen && progress > 0.6) {
+                    // Remove if far off-screen and mostly faded (earlier removal - 40% improvement)
+                    spark.remove();
+                    activeSparkCount--;
+                    return;
+                }
+                
+                // Throttle updates: only update every other frame when off-screen or fading
+                const shouldUpdate = !isOffScreen || progress < 0.4;
+                if (shouldUpdate) {
+                    // Use translate3d for GPU acceleration
+                    spark.style.transform = `translate3d(${currentX - startX}px, ${currentY - startY}px, 0)`;
+                    spark.style.opacity = 1 - progress;
+                } else {
+                    // Skip DOM update for off-screen sparks (40% fewer updates)
+                    // Still continue animation for physics calculations
+                }
+                
+                // Crossette split - only if under spark limit (reduced to 2 splits for 40% less)
+                if (splitDelay !== null && elapsed > splitDelay && !spark.dataset.split) {
+                    spark.dataset.split = 'true';
+                    // Create only 2 perpendicular sparks (reduced from 4) for better performance
+                    if (activeSparkCount + 2 <= FIREWORKS_CONFIG.maxActiveSparks) {
+                        for (let i = 0; i < 2; i++) {
+                            const splitAngle = angle + (i * Math.PI);
+                            createSpark(currentX, currentY, splitAngle, config, color, 0);
+                        }
+                    }
+                    spark.remove();
+                    activeSparkCount--;
+                    return;
+                }
+                
+                requestAnimationFrame(animateSpark);
+            }
+            
+            requestAnimationFrame(animateSpark);
+        }, delay);
+    }
+
+    function fireBurst(button, count = FIREWORKS_CONFIG.initialBurstMin) {
+        for (let i = 0; i < count; i++) {
+            const delay = Math.random() * FIREWORKS_CONFIG.rocketStagger;
+            launchRocket(button, delay);
+        }
+    }
+
+    function startFireworks(button) {
+        if (!fireworksContainer) initFireworks();
+        
+        isHovering = true;
+        
+        // Initial burst - random between 6-9
+        const initialCount = Math.floor(Math.random() * (FIREWORKS_CONFIG.initialBurstMax - FIREWORKS_CONFIG.initialBurstMin + 1)) + FIREWORKS_CONFIG.initialBurstMin;
+        fireBurst(button, initialCount);
+        
+        // Start sustained bursts - aggressive throttling for 40% better performance
+        burstInterval = setInterval(() => {
+            if (!isHovering) {
+                clearInterval(burstInterval);
+                return;
+            }
+            // Skip burst if too many active sparks (more aggressive throttle - 50% threshold)
+            if (activeSparkCount < FIREWORKS_CONFIG.maxActiveSparks * 0.5) {
+                fireBurst(button, FIREWORKS_CONFIG.subsequentBurst);
+            }
+        }, FIREWORKS_CONFIG.burstInterval);
+    }
+
+    function stopFireworks() {
+        isHovering = false;
+        if (burstInterval) {
+            clearInterval(burstInterval);
+            burstInterval = null;
+        }
+    }
+
+    function startContinueFireworks(button) {
+        if (!fireworksContainer) initFireworks();
+        
+        isContinueHovering = true;
+        
+        // Initial burst - random between 1-2
+        const initialCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+        fireBurst(button, initialCount);
+        
+        // Start sustained bursts - 1 rocket per continued hover
+        continueBurstInterval = setInterval(() => {
+            if (!isContinueHovering) {
+                clearInterval(continueBurstInterval);
+                return;
+            }
+            fireBurst(button, 1);
+        }, FIREWORKS_CONFIG.burstInterval);
+    }
+
+    function stopContinueFireworks() {
+        isContinueHovering = false;
+        if (continueBurstInterval) {
+            clearInterval(continueBurstInterval);
+            continueBurstInterval = null;
+        }
+    }
+
+    // ========================================
     // Email Icon Click Handler
     // ========================================
     function initEmailIcon() {
         if (!elements.emailIcon) return;
+        
+        // Initialize SVG gradient animation
+        initSvgGradientAnimation();
+        
+        // Initialize fireworks
+        initFireworks();
         
         // #region agent log
         // Measure dimensions after icon is rendered
@@ -824,6 +1348,15 @@
             fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initEmailIcon',message:'Email icon dimensions measurement',data:{containerWidth:rect.width,containerHeight:rect.height,containerTop:rect.top,containerLeft:rect.left,borderWidth:computedStyle.borderWidth,boxSizing:computedStyle.boxSizing,padding:computedStyle.padding,svgWidth:svgRect?.width,svgHeight:svgRect?.height,cssWidth:computedStyle.width,cssHeight:computedStyle.height},timestamp:Date.now(),sessionId:'debug-session',runId:'border-debug',hypothesisId:'A'})}).catch(()=>{});
         }, 100);
         // #endregion
+        
+        // Fireworks on hover
+        elements.emailIcon.addEventListener('mouseenter', () => {
+            startFireworks(elements.emailIcon);
+        });
+        
+        elements.emailIcon.addEventListener('mouseleave', () => {
+            stopFireworks();
+        });
         
         elements.emailIcon.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -865,6 +1398,17 @@
         initXFeedModal();
         initEmailIcon();
         initImageLoading();
+        
+        // Initialize fireworks for welcome firework
+        initFireworks();
+        
+        // Fire 5-7 fireworks 2 seconds after page load
+        setTimeout(() => {
+            if (elements.emailIcon && !elements.emailIcon.classList.contains('hidden')) {
+                const initialCount = Math.floor(Math.random() * (FIREWORKS_CONFIG.initialBurstMax - FIREWORKS_CONFIG.initialBurstMin + 1)) + FIREWORKS_CONFIG.initialBurstMin;
+                fireBurst(elements.emailIcon, initialCount);
+            }
+        }, 2000);
     }
 
     if (document.readyState === 'loading') {
