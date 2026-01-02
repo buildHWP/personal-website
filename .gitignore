@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Cursor IDE
+.cursor/
+
+# Node modules (if added later)
+node_modules/
+
+.vercel

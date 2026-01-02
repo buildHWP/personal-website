@@ -842,11 +842,27 @@ body {
     overflow-x: hidden;
     margin-top: 32px;
     border-radius: 12px;
+    min-height: 400px;
+}
+
+/* Loading state */
+.x-feed-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
 }
 
 /* Style the Twitter iframe container */
 .x-feed-container .twitter-timeline {
     border-radius: 12px;
+}
+
+/* Twitter timeline iframe styling */
+.x-feed-container .twitter-timeline-rendered,
+.x-feed-container iframe {
+    border-radius: 12px !important;
+    background: transparent !important;
 }
 
 /* Scrollbar for X feed container */

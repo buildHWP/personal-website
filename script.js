@@ -537,8 +537,8 @@
      * @returns {Promise<void>} Resolves when script is ready
      */
     function loadTwitterWidgetsOnce() {
-        // Already loaded
-        if (state.twitterScriptLoaded && window.twttr?.widgets) {
+        // Already loaded and ready
+        if (state.twitterScriptLoaded && window.twttr?.widgets?.createTimeline) {
             return Promise.resolve();
         }
         
@@ -551,12 +551,23 @@
         state.twitterScriptLoading = new Promise((resolve, reject) => {
             // Check if script already exists in DOM
             if (document.querySelector('script[src*="platform.twitter.com/widgets.js"]')) {
-                if (window.twttr?.widgets) {
+                if (window.twttr?.widgets?.createTimeline) {
                     state.twitterScriptLoaded = true;
                     resolve();
                     return;
                 }
             }
+            
+            // Set up twttr ready callback
+            window.twttr = window.twttr || {};
+            window.twttr.ready = window.twttr.ready || function(cb) {
+                if (window.twttr.widgets) {
+                    cb(window.twttr);
+                } else {
+                    window.twttr._e = window.twttr._e || [];
+                    window.twttr._e.push(cb);
+                }
+            };
             
             const script = document.createElement('script');
             script.src = 'https://platform.twitter.com/widgets.js';
@@ -564,8 +575,11 @@
             script.charset = 'utf-8';
             
             script.onload = () => {
-                state.twitterScriptLoaded = true;
-                resolve();
+                // Wait for twttr to be fully ready
+                window.twttr.ready((twttr) => {
+                    state.twitterScriptLoaded = true;
+                    resolve();
+                });
             };
             
             script.onerror = () => {
@@ -589,18 +603,60 @@
         // Clear existing content to prevent duplicates
         container.innerHTML = '';
         
-        // Create the Twitter timeline anchor
+        // Add loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'x-feed-loading';
+        loadingDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Loading timeline...</p>';
+        container.appendChild(loadingDiv);
+        
+        // Use createTimeline API for better control
+        if (window.twttr?.widgets?.createTimeline) {
+            window.twttr.widgets.createTimeline(
+                {
+                    sourceType: 'profile',
+                    screenName: X_HANDLE
+                },
+                container,
+                {
+                    theme: 'dark',
+                    chrome: 'noheader nofooter transparent',
+                    height: 550,
+                    tweetLimit: 10,
+                    dnt: true
+                }
+            ).then((el) => {
+                // Remove loading indicator on success
+                if (loadingDiv.parentNode) {
+                    loadingDiv.remove();
+                }
+            }).catch((err) => {
+                console.error('Timeline creation failed:', err);
+                // Fall back to anchor method
+                loadingDiv.remove();
+                createTimelineAnchor(container);
+            });
+        } else {
+            // Fallback: use anchor method
+            loadingDiv.remove();
+            createTimelineAnchor(container);
+        }
+    }
+    
+    /**
+     * Creates a timeline anchor as fallback
+     */
+    function createTimelineAnchor(container) {
         const timelineAnchor = document.createElement('a');
         timelineAnchor.className = 'twitter-timeline';
         timelineAnchor.href = `https://twitter.com/${X_HANDLE}`;
         timelineAnchor.setAttribute('data-theme', 'dark');
-        timelineAnchor.setAttribute('data-height', '600');
-        timelineAnchor.setAttribute('data-chrome', 'noheader nofooter noborders transparent');
+        timelineAnchor.setAttribute('data-height', '550');
+        timelineAnchor.setAttribute('data-chrome', 'noheader nofooter transparent');
+        timelineAnchor.setAttribute('data-tweet-limit', '10');
         timelineAnchor.textContent = `Tweets by @${X_HANDLE}`;
         
         container.appendChild(timelineAnchor);
         
-        // Trigger Twitter widget rendering
         if (window.twttr?.widgets?.load) {
             window.twttr.widgets.load(container);
         }
