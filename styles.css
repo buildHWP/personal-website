@@ -200,14 +200,14 @@ body {
 .glass-letter {
     position: relative;
     width: 100%;
-    max-width: 480px;
+    max-width: 720px;
     background: var(--glass-bg);
     backdrop-filter: blur(40px) saturate(1.8);
     -webkit-backdrop-filter: blur(40px) saturate(1.8);
     border: 0.5px solid var(--glass-border);
     border-radius: 20px;
     box-shadow: var(--glass-shadow);
-    overflow: hidden;
+    overflow: visible;
     
     /* Entrance animation */
     opacity: 0;
@@ -241,15 +241,15 @@ body {
    Letter Content
 ======================================== */
 .letter-content {
-    padding: 32px 28px 28px;
+    padding: 24px 28px 24px;
 }
 
 /* ========================================
    Email Metadata Header
 ======================================== */
 .email-meta {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
+    margin-bottom: 13px;
+    padding-bottom: 11px;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
     
     /* Hidden until JS triggers */
@@ -267,10 +267,10 @@ body {
 .meta-row {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 2px;
     font-family: var(--font-system);
-    font-size: 14px;
+    font-size: 11px;
     line-height: 1.35;
 }
 
@@ -281,7 +281,7 @@ body {
 .meta-label {
     font-weight: 600;
     color: var(--text-primary);
-    min-width: 60px;
+    min-width: 48px;
 }
 
 .meta-value {
@@ -291,7 +291,7 @@ body {
 
 #email-subject {
     font-weight: 500;
-    font-size: 16px;
+    font-size: 13px;
     color: var(--text-primary);
 }
 
@@ -300,16 +300,16 @@ body {
 ======================================== */
 .email-body {
     font-family: var(--font-system);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 400;
-    line-height: 1.7;
+    line-height: 1.55;
     color: var(--text-secondary);
     letter-spacing: -0.01em;
-    min-height: 120px;
+    min-height: auto;
 }
 
 .email-body p {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
 }
 
 .email-body p:last-child {
@@ -362,7 +362,7 @@ body {
    Email Signature
 ======================================== */
 .email-signature {
-    margin-top: 24px;
+    margin-top: 11px;
     opacity: 0;
     transition: opacity 0.4s var(--transition-smooth);
 }
@@ -373,7 +373,7 @@ body {
 
 .email-signature .signature-name {
     font-family: var(--font-system);
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
     letter-spacing: -0.01em;
@@ -389,14 +389,14 @@ body {
     justify-content: center;
     gap: 6px;
     width: 100%;
-    margin-top: 24px;
-    padding: 14px 20px;
+    margin-top: 14px;
+    padding: 12px 20px;
     background: var(--glass-bg-elevated);
     border: 0.5px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
     color: var(--text-primary);
     font-family: var(--font-system);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: -0.01em;
     cursor: pointer;
@@ -690,25 +690,31 @@ body {
 /* Landscape orientation on mobile */
 @media (max-height: 600px) and (orientation: landscape) {
     .glass-letter {
-        max-height: 90vh;
-        overflow-y: auto;
+        transform: scale(0.85);
+        transform-origin: center center;
     }
     
     .letter-content {
-        padding: 20px;
+        padding: 16px;
     }
     
-    .letter-body p {
-        margin-bottom: 12px;
+    .email-body {
+        font-size: 11px;
+        line-height: 1.4;
     }
     
-    .letter-signature {
-        margin-top: 16px;
-        padding-top: 12px;
+    .email-body p {
+        margin-bottom: 6px;
+    }
+    
+    .email-signature {
+        margin-top: 10px;
+        padding-top: 8px;
     }
     
     .letter-continue {
-        margin-top: 16px;
+        margin-top: 10px;
+        padding: 8px 16px;
     }
 }
 
