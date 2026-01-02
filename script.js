@@ -13,9 +13,10 @@
         modalShowDelay: 200,          // Delay after image loads before showing modal
         headerShowDelay: 300,         // Delay after modal before showing header
         bodyStartDelay: 400,          // Delay after header before starting body text
-        splitFlapDuration: 441,       // Total time for all body text (~0.44 seconds, 2x faster)
-        charsPerFlip: 1,              // Characters to flip through before settling
+        splitFlapDuration: 2425,       // Total time for all body text (~2.425 seconds, 25% increase)
+        charsPerFlip: 8,              // Characters to flip through before settling (longer cycling)
         flipInterval: 1,              // Ms between character flips (already at minimum)
+        lookaheadChars: 7,             // Number of characters ahead that are also flipping
         prismaticEnticeDelay: 6000,   // Delay before prismatic entice effect (6 seconds)
         parallaxIntensity: 0.03
     };
@@ -202,82 +203,117 @@
 
     function animateLine(element, targetText, timePerChar, onComplete) {
         element.textContent = '';
-        let charIndex = 0;
         
-        function animateNextChar() {
-            if (charIndex >= targetText.length) {
-                // Remove cursor when done
-                const cursor = element.querySelector('.split-flap-cursor');
-                if (cursor) cursor.remove();
+        const targetChars = targetText.split('');
+        const charSpans = new Array(targetChars.length).fill(null);
+        const settled = new Array(targetChars.length).fill(false);
+        const created = new Array(targetChars.length).fill(false);
+        
+        // Add cursor
+        const cursor = document.createElement('span');
+        cursor.className = 'split-flap-cursor';
+        element.appendChild(cursor);
+        
+        let currentIndex = 0;
+        
+        // Function to create a character span if it doesn't exist
+        function ensureCharSpan(index) {
+            if (created[index] || index >= targetChars.length) {
+                return charSpans[index];
+            }
+            
+            const targetChar = targetChars[index];
+            const charSpan = document.createElement('span');
+            charSpan.className = 'split-flap-char';
+            charSpan.dataset.targetChar = targetChar;
+            charSpan.dataset.index = index;
+            
+            // Handle spaces and punctuation
+            if (targetChar === ' ') {
+                charSpan.innerHTML = '&nbsp;';
+                charSpan.dataset.isSpace = 'true';
+            } else if (/[.,!?']/.test(targetChar)) {
+                charSpan.textContent = targetChar;
+                charSpan.dataset.isPunct = 'true';
+            } else {
+                // Start with random character
+                charSpan.textContent = FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)];
+            }
+            
+            // Insert before cursor
+            element.insertBefore(charSpan, cursor);
+            charSpans[index] = charSpan;
+            created[index] = true;
+            
+            return charSpan;
+        }
+        
+        // Continuous flipping interval for lookahead characters
+        const flipInterval = setInterval(() => {
+            const maxIndex = Math.min(currentIndex + CONFIG.lookaheadChars, targetChars.length - 1);
+            
+            for (let i = currentIndex; i <= maxIndex; i++) {
+                if (!settled[i] && !created[i]) {
+                    // Create character span if it doesn't exist yet
+                    ensureCharSpan(i);
+                }
+                
+                if (!settled[i]) {
+                    const charSpan = charSpans[i];
+                    if (!charSpan) continue;
+                    
+                    // Skip spaces and punctuation
+                    if (charSpan.dataset.isSpace === 'true' || charSpan.dataset.isPunct === 'true') {
+                        continue;
+                    }
+                    
+                    // Flip to random character
+                    const randomChar = FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)];
+                    charSpan.textContent = randomChar;
+                    charSpan.classList.add('flipping');
+                    
+                    setTimeout(() => {
+                        charSpan.classList.remove('flipping');
+                    }, CONFIG.flipInterval);
+                }
+            }
+        }, CONFIG.flipInterval);
+        
+        // Main animation - settle characters one by one
+        function settleNextChar() {
+            if (currentIndex >= targetChars.length) {
+                clearInterval(flipInterval);
+                cursor.remove();
                 onComplete();
                 return;
             }
             
-            const targetChar = targetText[charIndex];
-            const charSpan = document.createElement('span');
-            charSpan.className = 'split-flap-char';
-            
-            // Remove old cursor
-            const oldCursor = element.querySelector('.split-flap-cursor');
-            if (oldCursor) oldCursor.remove();
-            
-            element.appendChild(charSpan);
-            
-            // Add cursor after current position
-            const cursor = document.createElement('span');
-            cursor.className = 'split-flap-cursor';
-            element.appendChild(cursor);
-            
-            // If it's a space, use non-breaking space for visibility
-            if (targetChar === ' ') {
-                charSpan.innerHTML = '&nbsp;';
-                charIndex++;
-                setTimeout(animateNextChar, timePerChar * 0.3);
-                return;
+            // Ensure character exists
+            if (!created[currentIndex]) {
+                ensureCharSpan(currentIndex);
             }
             
-            // Punctuation - show immediately
-            if (/[.,!?']/.test(targetChar)) {
+            const charSpan = charSpans[currentIndex];
+            const targetChar = charSpan.dataset.targetChar;
+            
+            // Settle this character
+            if (charSpan.dataset.isSpace !== 'true' && charSpan.dataset.isPunct !== 'true') {
                 charSpan.textContent = targetChar;
-                charIndex++;
-                setTimeout(animateNextChar, timePerChar * 0.5);
-                return;
-            }
-            
-            // Flip through random characters before settling
-            let flipCount = 0;
-            const maxFlips = CONFIG.charsPerFlip + Math.floor(Math.random() * 2);
-            
-            function flipChar() {
-                if (flipCount >= maxFlips) {
-                    // Settle on target character
-                    charSpan.textContent = targetChar;
-                    charSpan.classList.add('flipping');
-                    setTimeout(() => {
-                        charSpan.classList.remove('flipping');
-                    }, 80);
-                    
-                    charIndex++;
-                    setTimeout(animateNextChar, timePerChar);
-                    return;
-                }
-                
-                // Show random character
-                const randomChar = FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)];
-                charSpan.textContent = randomChar;
                 charSpan.classList.add('flipping');
-                
                 setTimeout(() => {
                     charSpan.classList.remove('flipping');
-                    flipCount++;
-                    setTimeout(flipChar, CONFIG.flipInterval);
-                }, CONFIG.flipInterval);
+                }, 80);
             }
             
-            flipChar();
+            settled[currentIndex] = true;
+            currentIndex++;
+            
+            // Schedule next settlement
+            setTimeout(settleNextChar, timePerChar);
         }
         
-        animateNextChar();
+        // Start settling characters
+        setTimeout(settleNextChar, CONFIG.flipInterval * 3);
     }
 
     function finishAnimation() {
