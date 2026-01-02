@@ -3,8 +3,8 @@
    Apple-inspired Glass UI
 ======================================== */
 :root {
-    /* Apple System Font Stack */
-    --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /* Helvetica Font Stack */
+    --font-system: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     
     /* Colors */
     --text-primary: rgba(255, 255, 255, 0.95);
@@ -15,6 +15,11 @@
     --glass-bg: rgba(180, 185, 195, 0.10);
     --glass-bg-elevated: rgba(180, 185, 195, 0.14);
     --glass-border: rgba(255, 255, 255, 0.18);
+    
+    /* Background opacity controls - reduce to show more background, increase for readability */
+    /* REVERT: Change both values back to 0.05 and 0.025 respectively */
+    --glass-panel-opacity: 0.02;
+    --icon-panel-opacity: 0.01;
     --glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.35),
                     0 0 1px rgba(255, 255, 255, 0.1);
     
@@ -161,7 +166,8 @@ body {
     transform: translate(-50%, -50%);
     width: 56px;
     height: 56px;
-    background: rgba(255, 255, 255, 0.05);
+    /* REVERT: Change back to rgba(255, 255, 255, 0.025) */
+    background: rgba(255, 255, 255, var(--icon-panel-opacity));
     backdrop-filter: blur(12px) saturate(1.2);
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -233,7 +239,7 @@ body {
     opacity: 0;
     animation: rotateRainbowGradient 3s linear infinite;
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
 }
 
 @keyframes rotateRainbowGradient {
@@ -306,6 +312,7 @@ body {
     font-size: 11px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.95);
+    z-index: 10;
     box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4),
                 0 0 0 1px rgba(255, 255, 255, 0.1);
     padding: 0 5px;
@@ -376,7 +383,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 720px;
-    background: var(--glass-bg);
+    /* REVERT: Change back to rgba(180, 185, 195, 0.05) */
+    background: rgba(180, 185, 195, var(--glass-panel-opacity));
     backdrop-filter: blur(40px) saturate(1.8);
     -webkit-backdrop-filter: blur(40px) saturate(1.8);
     border-radius: 20px;
@@ -502,6 +510,8 @@ body {
     word-wrap: break-word;
     word-break: normal;
     overflow: visible;
+    /* Enhanced readability with more transparent background */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .email-body p {
@@ -511,11 +521,15 @@ body {
     word-break: normal;
 }
 
-.email-body .email-header {
-    font-size: 14px;
+.email-body .email-header,
+.email-body h3.email-header {
+    font-size: 15px;
     font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    margin-top: 0;
+    font-family: var(--font-system);
+    letter-spacing: -0.01em;
 }
 
 .email-body p:last-child {
