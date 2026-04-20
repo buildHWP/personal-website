@@ -745,10 +745,13 @@
     }
 
     /**
-     * Renders the full feed into the container
+     * Renders the full feed — header/tabs go into x-feed-content (sticky),
+     * card list goes into x-feed-container (scrollable).
      */
     function renderFeed(container, data) {
         if (!container) return;
+
+        const contentEl = document.querySelector('.x-feed-content');
 
         if (!data || !data.posts || data.posts.length === 0) {
             renderFallbackCard(container);
@@ -761,7 +764,10 @@
         const repostCount = data.posts.filter(p => p.type === 'repost').length;
         const replyCount = data.posts.filter(p => p.type === 'reply').length;
 
-        const header = `
+        // Remove any previously injected header/tabs (avoid duplication)
+        contentEl.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => el.remove());
+
+        const headerHtml = `
             <div class="x-feed-header">
                 <div class="x-feed-header-left">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" class="x-feed-logo">
@@ -772,22 +778,30 @@
                 <a href="https://x.com/${X_HANDLE}" target="_blank" rel="noopener noreferrer" class="x-feed-follow-btn">Follow</a>
             </div>
             <div class="x-feed-tabs">
-                <button class="x-feed-tab${currentFilter === 'all' ? ' active' : ''}" data-filter="all">All</button>
-                <button class="x-feed-tab${currentFilter === 'posts' ? ' active' : ''}" data-filter="posts">Posts${postCount ? ' <span class="tab-count">' + postCount + '</span>' : ''}</button>
-                <button class="x-feed-tab${currentFilter === 'reposts' ? ' active' : ''}" data-filter="reposts">Reposts${repostCount ? ' <span class="tab-count">' + repostCount + '</span>' : ''}</button>
-                <button class="x-feed-tab${currentFilter === 'replies' ? ' active' : ''}" data-filter="replies">Replies${replyCount ? ' <span class="tab-count">' + replyCount + '</span>' : ''}</button>
+                <button class="x-feed-tab${currentFilter === 'all' ? ' active' : ''}" data-filter="all">All <span class="tab-count">${allCount}</span></button>
+                <button class="x-feed-tab${currentFilter === 'posts' ? ' active' : ''}" data-filter="posts">Posts <span class="tab-count">${postCount}</span></button>
+                <button class="x-feed-tab${currentFilter === 'reposts' ? ' active' : ''}" data-filter="reposts">Reposts <span class="tab-count">${repostCount}</span></button>
+                <button class="x-feed-tab${currentFilter === 'replies' ? ' active' : ''}" data-filter="replies">Replies <span class="tab-count">${replyCount}</span></button>
             </div>
         `;
 
+        // Insert header/tabs into x-feed-content, BEFORE x-feed-container
+        const temp = document.createElement('div');
+        temp.innerHTML = headerHtml;
+        while (temp.firstChild) {
+            contentEl.insertBefore(temp.firstChild, container);
+        }
+
+        // Render cards into the scrollable container
         const filtered = filterPosts(data.posts, currentFilter);
         const cards = filtered.length > 0
             ? filtered.map(renderTweetCard).join('')
             : `<div class="tweet-cards-empty">No ${currentFilter === 'all' ? '' : currentFilter + ' '}posts yet</div>`;
 
-        container.innerHTML = header + '<div class="tweet-cards-list">' + cards + '</div>';
+        container.innerHTML = '<div class="tweet-cards-list">' + cards + '</div>';
 
         // Attach tab click handlers
-        container.querySelectorAll('.x-feed-tab').forEach(tab => {
+        contentEl.querySelectorAll('.x-feed-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -797,7 +811,7 @@
                 currentFilter = filter;
 
                 // Update active tab
-                container.querySelectorAll('.x-feed-tab').forEach(t => t.classList.remove('active'));
+                contentEl.querySelectorAll('.x-feed-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
                 // Re-render cards only

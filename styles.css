@@ -1538,7 +1538,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
+    overflow: hidden; /* outer frame clips, children scroll */
 }
 
 .x-feed-close {
@@ -1706,6 +1706,7 @@ body {
     padding: 0 4px 14px;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .x-feed-header-left {
@@ -1759,6 +1760,7 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    flex-shrink: 0;
 }
 
 .x-feed-tabs::-webkit-scrollbar {
@@ -1782,6 +1784,11 @@ body {
     transition: all 0.2s var(--transition-smooth);
     white-space: nowrap;
     flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+    z-index: 2;
 }
 
 .x-feed-tab:hover {
@@ -1951,6 +1958,7 @@ body {
     padding: 0 0 10px;
     z-index: 5;
     position: relative;
+    flex-shrink: 0;
 }
 
 .view-switcher-btn {
