@@ -15,7 +15,7 @@
         bodyStartDelay: 400,          // Delay after header before starting body text
         splitFlapDuration: 2425,       // Total time for all body text (~2.425 seconds, 25% increase)
         charsPerFlip: 8,              // Characters to flip through before settling (longer cycling)
-        flipInterval: 1,              // Ms between character flips (already at minimum)
+        flipInterval: 16,             // Ms between character flips (~60fps, was 1ms causing excessive callbacks)
         lookaheadChars: 7,             // Number of characters ahead that are also flipping
         prismaticEnticeDelay: 6000,   // Delay before prismatic entice effect (6 seconds)
         parallaxIntensity: 0.03
@@ -380,18 +380,15 @@
 
     function finishAnimation() {
         state.splitFlapRunning = false;
-        
+
         // Show continue button
         setTimeout(() => {
             elements.letterContinue.classList.add('visible');
-            
+
             // Start prismatic entice effect after delay
             setTimeout(() => {
                 if (!state.transitionTriggered) {
                     elements.letterContinue.classList.add('prismatic-entice');
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:showLetter',message:'prismatic-entice added - tracking should continue',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'F'})}).catch(()=>{});
-                    // #endregion
                 }
             }, CONFIG.prismaticEnticeDelay);
         }, 300);
@@ -406,30 +403,18 @@
         blurSize: 20        // Blur radius in px
     };
 
-    // #region agent log
-    let debugMoveCount = 0;
-    let debugRafCount = 0;
-    // #endregion
-
     function initButtonEffects() {
         const btn = elements.letterContinue;
         if (!btn) return;
 
-        // Initialize fireworks for continue button
-        initFireworks();
-        
         // Fireworks on hover for continue button
         btn.addEventListener('mouseenter', () => {
             startContinueFireworks(btn);
         });
-        
+
         btn.addEventListener('mouseleave', () => {
             stopContinueFireworks();
         });
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initButtonEffects',message:'initButtonEffects called',data:{btnExists:!!btn},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
 
         let rafId = null;
         let lastX = 0, lastY = 0;
@@ -437,19 +422,9 @@
         function onPointerMove(e) {
             lastX = e.clientX;
             lastY = e.clientY;
-            
-            // #region agent log
-            debugMoveCount++;
-            if (debugMoveCount % 50 === 0) {
-                fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:onPointerMove',message:'pointer move event',data:{moveCount:debugMoveCount,rafIdNull:rafId===null,x:lastX,y:lastY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-            }
-            // #endregion
-            
+
             if (!rafId) {
                 rafId = requestAnimationFrame(() => {
-                    // #region agent log
-                    debugRafCount++;
-                    // #endregion
                     updateEdgeGlow(btn, lastX, lastY);
                     rafId = null;
                 });
@@ -466,13 +441,7 @@
 
     function updateEdgeGlow(btn, mouseX, mouseY) {
         const rect = btn.getBoundingClientRect();
-        
-        // #region agent log
-        if (debugRafCount % 30 === 0) {
-            fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:updateEdgeGlow',message:'rect values',data:{rafCount:debugRafCount,rectTop:rect.top,rectLeft:rect.left,rectW:rect.width,rectH:rect.height,mouseX,mouseY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-        }
-        // #endregion
-        
+
         // Mouse position relative to button
         const px = mouseX - rect.left;
         const py = mouseY - rect.top;
@@ -535,12 +504,6 @@
         // Convert edge position to percentage
         const edgeXPercent = (edgeX / rect.width) * 100;
         const edgeYPercent = (edgeY / rect.height) * 100;
-        
-        // #region agent log
-        if (debugRafCount % 30 === 0) {
-            fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:updateEdgeGlow:result',message:'glow calculation',data:{distance,glow,edgeXPercent,edgeYPercent,px,py},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-        }
-        // #endregion
         
         // Update CSS variables
         btn.style.setProperty('--edge-x', `${edgeXPercent}%`);
@@ -643,116 +606,434 @@
     // ========================================
     
     /**
-     * Lazily loads the Twitter widgets.js script once
-     * @returns {Promise<void>} Resolves when script is ready
+     * Fetches posts from the RSS feed API (Vercel serverless function)
+     * Falls back to demo data on error
      */
-    function loadTwitterWidgetsOnce() {
-        // Already loaded and ready
-        if (state.twitterScriptLoaded && window.twttr?.widgets?.createTimeline) {
-            return Promise.resolve();
-        }
-        
-        // Currently loading - return existing promise
-        if (state.twitterScriptLoading) {
-            return state.twitterScriptLoading;
-        }
-        
-        // Start loading
-        state.twitterScriptLoading = new Promise((resolve, reject) => {
-            // Check if script already exists in DOM
-            if (document.querySelector('script[src*="platform.twitter.com/widgets.js"]')) {
-                if (window.twttr?.widgets?.createTimeline) {
-                    state.twitterScriptLoaded = true;
-                    resolve();
-                    return;
-                }
-            }
-            
-            // Set up twttr ready callback
-            window.twttr = window.twttr || {};
-            window.twttr.ready = window.twttr.ready || function(cb) {
-                if (window.twttr.widgets) {
-                    cb(window.twttr);
-                } else {
-                    window.twttr._e = window.twttr._e || [];
-                    window.twttr._e.push(cb);
-                }
-            };
-            
-            const script = document.createElement('script');
-            script.src = 'https://platform.twitter.com/widgets.js';
-            script.async = true;
-            script.charset = 'utf-8';
-            
-            script.onload = () => {
-                // Wait for twttr to be fully ready
-                window.twttr.ready((twttr) => {
-                    state.twitterScriptLoaded = true;
-                    resolve();
-                });
-            };
-            
-            script.onerror = () => {
-                state.twitterScriptLoading = null;
-                reject(new Error('Failed to load Twitter widgets.js'));
-            };
-            
-            document.head.appendChild(script);
-        });
-        
-        return state.twitterScriptLoading;
+    let cachedFeedData = null;
+    let feedFetchPromise = null;
+
+    // Demo posts shown when API isn't reachable (local dev)
+    const DEMO_POSTS = [
+        { text: "Weekly updates can be long when everyone shipping so much @trynationgraph", link: "https://x.com/h_woopark", date: new Date().toISOString(), image: "https://pbs.twimg.com/media/HGIsXyXakAAKfau.jpg", type: "post", author: "h_woopark", rtAuthor: null },
+        { text: "CAD $2.58 plz @h_woopark", link: "https://x.com/h_woopark", date: new Date(Date.now() - 21600000).toISOString(), image: "https://pbs.twimg.com/media/HGLRHfFaYAA3xvP.jpg", type: "repost", author: "h_woopark", rtAuthor: { name: "Miles 2", handle: "milesFF007F" } },
+        { text: "we're growing fast and hiring for an account manager and senior swe at @trynationgraph in toronto this role is probably not for 90% of folks, it's long hours, tough problems to solve but HEAVILY rewarding. Dms are open if you want to join the rocketship", link: "https://x.com/h_woopark", date: new Date(Date.now() - 43200000).toISOString(), image: "https://pbs.twimg.com/media/HGIsXyXakAAKfau.jpg", type: "repost", author: "h_woopark", rtAuthor: { name: "NationGraph", handle: "trynationgraph" } },
+        { text: "Goated ML Leader- literally an honour to work alongside her\u2026 every word that comes out of her mouth is alpha", link: "https://x.com/h_woopark", date: new Date(Date.now() - 86400000).toISOString(), image: null, type: "post", author: "h_woopark", rtAuthor: null },
+        { text: "@milesFF007F haha appreciate you bro, next dinner on me", link: "https://x.com/h_woopark", date: new Date(Date.now() - 129600000).toISOString(), image: null, type: "reply", author: "h_woopark", rtAuthor: null },
+        { text: "U should've seen how crazy my sr Eng was going with his hands after we got the first successful stamp in during lunch time", link: "https://x.com/h_woopark", date: new Date(Date.now() - 172800000).toISOString(), image: "https://pbs.twimg.com/media/HGICMV7aEAAXrTY.jpg", type: "post", author: "h_woopark", rtAuthor: null },
+        { text: "Justin Bieber spotted using @trynationgraph at Coachella?", link: "https://x.com/h_woopark", date: new Date(Date.now() - 259200000).toISOString(), image: "https://pbs.twimg.com/media/HF4gUc7W0AAhLs7.jpg", type: "repost", author: "h_woopark", rtAuthor: { name: "NationGraph", handle: "trynationgraph" } },
+        { text: "Anyone got tix to the masters? (Will drop everything and do anything for em)", link: "https://x.com/h_woopark", date: new Date(Date.now() - 345600000).toISOString(), image: null, type: "post", author: "h_woopark", rtAuthor: null }
+    ];
+
+    // Current filter state
+    let currentFilter = 'all';
+
+    function fetchFeedData() {
+        if (cachedFeedData) return Promise.resolve(cachedFeedData);
+        if (feedFetchPromise) return feedFetchPromise;
+
+        feedFetchPromise = fetch('/api/feed')
+            .then(res => {
+                if (!res.ok) throw new Error('Feed API returned ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                cachedFeedData = data;
+                return data;
+            })
+            .catch(err => {
+                console.warn('Feed API unavailable, using demo posts:', err.message);
+                // Return demo data so tweet cards still render locally
+                const demoData = { posts: DEMO_POSTS, source: 'demo' };
+                cachedFeedData = demoData;
+                return demoData;
+            });
+
+        return feedFetchPromise;
     }
-    
+
     /**
-     * Renders the X timeline into the specified container
-     * Uses the exact embed code from Twitter Publish
-     * @param {HTMLElement} container - The container element
+     * Formats a date string into a relative time (e.g., "2h", "3d")
      */
-    function renderXTimeline(container) {
+    function formatRelativeTime(dateStr) {
+        try {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHr = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHr / 24);
+
+            if (diffMin < 1) return 'now';
+            if (diffMin < 60) return diffMin + 'm';
+            if (diffHr < 24) return diffHr + 'h';
+            if (diffDay < 7) return diffDay + 'd';
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } catch {
+            return '';
+        }
+    }
+
+    /**
+     * Renders a single tweet card HTML string
+     */
+    function renderTweetCard(post) {
+        const isRT = post.type === 'repost';
+        const isReply = post.type === 'reply';
+
+        // Type indicator above the card
+        const typeLabel = isRT
+            ? '<div class="tweet-card-type-label"><svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M4.75 3.79l4.603 4.3-1.706 1.82L6 8.38v7.37c0 .97.784 1.75 1.75 1.75H13V19.5H7.75c-2.347 0-4.25-1.9-4.25-4.25V8.38L1.853 9.91.147 8.09l4.603-4.3zm11.5 2.71H11V4.5h5.25c2.347 0 4.25 1.9 4.25 4.25v7.37l1.647-1.53 1.706 1.82-4.603 4.3-4.603-4.3 1.706-1.82L18 16.12V8.75c0-.97-.784-1.75-1.75-1.75z"/></svg> Reposted</div>'
+            : isReply
+            ? '<div class="tweet-card-type-label"><svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.25-.893 4.32-2.383 5.83l-4.685 4.69c-.29.29-.677.44-1.061.44-.384 0-.768-.15-1.061-.44-.586-.58-.586-1.54 0-2.12l4.686-4.69c.944-.95 1.504-2.24 1.504-3.71 0-2.835-2.262-5.13-5.129-5.13H9.756c-2.763 0-5.005 2.24-5.005 5v.09L7.38 7.38c.586-.58 1.536-.58 2.122 0s.586 1.54 0 2.12L5.254 13.75c-.293.29-.677.44-1.06.44s-.767-.15-1.06-.44L-.114 9.5c-.586-.58-.586-1.54 0-2.12s1.536-.58 2.122 0L4.751 10.1V10z"/></svg> Reply</div>'
+            : '';
+
+        // For RTs, show the original author; for posts/replies, show Woo
+        const displayName = isRT && post.rtAuthor ? post.rtAuthor.name : 'Woo';
+        const displayHandle = isRT && post.rtAuthor ? '@' + post.rtAuthor.handle : '@' + X_HANDLE;
+
+        const imageHtml = post.image
+            ? `<div class="tweet-card-image"><img src="${post.image}" alt="" loading="lazy"></div>` : '';
+
+        const timeStr = formatRelativeTime(post.date);
+
+        return `
+            <a href="${post.link || 'https://x.com/' + X_HANDLE}" target="_blank" rel="noopener noreferrer" class="tweet-card" data-type="${post.type}">
+                ${typeLabel}
+                <div class="tweet-card-header">
+                    <div class="tweet-card-avatar">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </div>
+                    <span class="tweet-card-name">${displayName}</span>
+                    <span class="tweet-card-handle">${displayHandle}</span>
+                    <span class="tweet-card-dot">&middot;</span>
+                    <span class="tweet-card-time">${timeStr}</span>
+                </div>
+                <p class="tweet-card-text">${post.text}</p>
+                ${imageHtml}
+            </a>
+        `;
+    }
+
+    /**
+     * Filters posts based on current filter
+     */
+    function filterPosts(posts, filter) {
+        if (filter === 'all') return posts;
+        if (filter === 'posts') return posts.filter(p => p.type === 'post');
+        if (filter === 'reposts') return posts.filter(p => p.type === 'repost');
+        if (filter === 'replies') return posts.filter(p => p.type === 'reply');
+        return posts;
+    }
+
+    /**
+     * Updates only the card list without re-rendering the header/tabs
+     */
+    function updateCardList(posts) {
+        const list = document.querySelector('.tweet-cards-list');
+        if (!list) return;
+
+        const filtered = filterPosts(posts, currentFilter);
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="tweet-cards-empty">No ${currentFilter === 'all' ? '' : currentFilter + ' '}posts yet</div>`;
+        } else {
+            list.innerHTML = filtered.map(renderTweetCard).join('');
+        }
+    }
+
+    /**
+     * Renders the full feed into the container
+     */
+    function renderFeed(container, data) {
         if (!container) return;
-        
-        // Clear existing content to prevent duplicates
-        container.innerHTML = '';
-        
-        // Create timeline anchor using exact Twitter Publish format
-        const timelineAnchor = document.createElement('a');
-        timelineAnchor.className = 'twitter-timeline';
-        timelineAnchor.setAttribute('data-width', '720');
-        timelineAnchor.setAttribute('data-height', '500');
-        timelineAnchor.setAttribute('data-theme', 'dark');
-        timelineAnchor.href = `https://twitter.com/${X_HANDLE}?ref_src=twsrc%5Etfw`;
-        timelineAnchor.textContent = `Tweets by ${X_HANDLE}`;
-        
-        container.appendChild(timelineAnchor);
-        
-        // Trigger widget rendering
-        if (window.twttr?.widgets?.load) {
-            window.twttr.widgets.load(container);
+
+        if (!data || !data.posts || data.posts.length === 0) {
+            renderFallbackCard(container);
+            return;
         }
+
+        // Count types for tab labels
+        const allCount = data.posts.length;
+        const postCount = data.posts.filter(p => p.type === 'post').length;
+        const repostCount = data.posts.filter(p => p.type === 'repost').length;
+        const replyCount = data.posts.filter(p => p.type === 'reply').length;
+
+        const header = `
+            <div class="x-feed-header">
+                <div class="x-feed-header-left">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" class="x-feed-logo">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span class="x-feed-header-title">@${X_HANDLE}</span>
+                </div>
+                <a href="https://x.com/${X_HANDLE}" target="_blank" rel="noopener noreferrer" class="x-feed-follow-btn">Follow</a>
+            </div>
+            <div class="x-feed-tabs">
+                <button class="x-feed-tab${currentFilter === 'all' ? ' active' : ''}" data-filter="all">All</button>
+                <button class="x-feed-tab${currentFilter === 'posts' ? ' active' : ''}" data-filter="posts">Posts${postCount ? ' <span class="tab-count">' + postCount + '</span>' : ''}</button>
+                <button class="x-feed-tab${currentFilter === 'reposts' ? ' active' : ''}" data-filter="reposts">Reposts${repostCount ? ' <span class="tab-count">' + repostCount + '</span>' : ''}</button>
+                <button class="x-feed-tab${currentFilter === 'replies' ? ' active' : ''}" data-filter="replies">Replies${replyCount ? ' <span class="tab-count">' + replyCount + '</span>' : ''}</button>
+            </div>
+        `;
+
+        const filtered = filterPosts(data.posts, currentFilter);
+        const cards = filtered.length > 0
+            ? filtered.map(renderTweetCard).join('')
+            : `<div class="tweet-cards-empty">No ${currentFilter === 'all' ? '' : currentFilter + ' '}posts yet</div>`;
+
+        container.innerHTML = header + '<div class="tweet-cards-list">' + cards + '</div>';
+
+        // Attach tab click handlers
+        container.querySelectorAll('.x-feed-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const filter = tab.dataset.filter;
+                if (filter === currentFilter) return;
+
+                currentFilter = filter;
+
+                // Update active tab
+                container.querySelectorAll('.x-feed-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Re-render cards only
+                updateCardList(data.posts);
+            });
+        });
     }
-    
+
     /**
-     * Shows the X feed modal and loads the timeline
+     * Renders fallback profile card when feed is unavailable
+     */
+    function renderFallbackCard(container) {
+        if (!container) return;
+        container.innerHTML = `
+            <div class="x-fallback-card">
+                <div class="x-fallback-header">
+                    <div class="x-fallback-avatar">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </div>
+                    <div class="x-fallback-info">
+                        <span class="x-fallback-name">Hyeonwoo Park</span>
+                        <span class="x-fallback-handle">@${X_HANDLE}</span>
+                    </div>
+                </div>
+                <p class="x-fallback-bio">Head of Data Operations at NationGraph (Employee #1). Interested in frontier technology, AI, and early-stage investing.</p>
+                <a href="https://x.com/${X_HANDLE}" target="_blank" rel="noopener noreferrer" class="x-fallback-button">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>View @${X_HANDLE} on X</span>
+                </a>
+            </div>
+        `;
+    }
+
+    /**
+     * Shows the X feed modal and loads posts from RSS feed API
      */
     function showXFeedModal() {
         if (!elements.xFeedOverlay) return;
-        
+
         state.xFeedVisible = true;
         elements.xFeedOverlay.classList.add('visible');
-        
-        // Load Twitter script and render timeline
-        loadTwitterWidgetsOnce()
-            .then(() => {
-                renderXTimeline(elements.xFeedContainer);
-            })
-            .catch((err) => {
-                console.error('Failed to load X timeline:', err);
-                if (elements.xFeedContainer) {
-                    elements.xFeedContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Unable to load timeline. Please try again later.</p>';
-                }
-            });
+
+        // Show loading state
+        if (elements.xFeedContainer) {
+            elements.xFeedContainer.innerHTML = `
+                <div class="x-feed-loading">
+                    <div class="loader-spinner" style="width:24px;height:24px;border-width:2px;"></div>
+                </div>
+            `;
+        }
+
+        // Fetch from RSS feed API and render cards
+        fetchFeedData().then(data => {
+            renderFeed(elements.xFeedContainer, data);
+        });
     }
     
+    // ========================================
+    // Blog (Notion) Integration
+    // ========================================
+    let cachedBlogData = null;
+    let blogFetchPromise = null;
+    let currentView = 'x'; // 'x' or 'blog'
+
+    // Demo blog posts for local dev
+    const DEMO_BLOG_POSTS = [
+        { id: '1', title: 'Why I Joined NationGraph as Employee #1', publishedAt: new Date(Date.now() - 86400000 * 3).toISOString(), tags: ['career', 'startups'], body: '<p>When I first met the founders, I knew this was something special. The vision of transforming unstructured data into actionable business insights resonated deeply with me...</p><p>Three months in, we\'ve already closed our Series A led by Menlo Ventures. The pace is relentless, but the reward is building something that genuinely matters.</p>' },
+        { id: '2', title: 'Lessons from Early-Stage Investing', publishedAt: new Date(Date.now() - 86400000 * 10).toISOString(), tags: ['investing', 'AI'], body: '<p>Having spent time on both sides of the table — as an operator and an investor — I\'ve learned that the best founders share a few key traits...</p><p>Pattern recognition matters, but conviction in the face of uncertainty matters more.</p>' },
+        { id: '3', title: 'The Future of Data Infrastructure', publishedAt: new Date(Date.now() - 86400000 * 21).toISOString(), tags: ['technology', 'data'], body: '<p>We\'re at an inflection point. The tools and systems that powered the last decade of data work are being fundamentally reimagined...</p>' }
+    ];
+
+    function fetchBlogData() {
+        if (cachedBlogData) return Promise.resolve(cachedBlogData);
+        if (blogFetchPromise) return blogFetchPromise;
+
+        blogFetchPromise = fetch('/api/blog-posts')
+            .then(res => {
+                if (!res.ok) throw new Error('Blog API returned ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                // API returns array directly
+                const posts = Array.isArray(data) ? data : (data.posts || []);
+                cachedBlogData = posts;
+                return posts;
+            })
+            .catch(err => {
+                console.warn('Blog API unavailable, using demo posts:', err.message);
+                cachedBlogData = DEMO_BLOG_POSTS;
+                return DEMO_BLOG_POSTS;
+            });
+
+        return blogFetchPromise;
+    }
+
+    function formatBlogDate(dateStr) {
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        } catch { return ''; }
+    }
+
+    function renderBlogPost(post) {
+        const tags = (post.tags || []).map(t => `<span class="blog-tag">${t}</span>`).join('');
+        const date = formatBlogDate(post.publishedAt);
+        // Truncate body for preview (strip HTML, take first 200 chars)
+        const plainText = (post.body || '').replace(/<[^>]*>/g, '').trim();
+        const preview = plainText.length > 200 ? plainText.substring(0, 200) + '...' : plainText;
+
+        return `
+            <div class="blog-card" data-post-id="${post.id}">
+                <div class="blog-card-meta">
+                    <span class="blog-card-date">${date}</span>
+                    ${tags ? '<div class="blog-card-tags">' + tags + '</div>' : ''}
+                </div>
+                <h3 class="blog-card-title">${post.title}</h3>
+                <p class="blog-card-preview">${preview}</p>
+            </div>
+        `;
+    }
+
+    function renderBlogExpanded(post) {
+        const tags = (post.tags || []).map(t => `<span class="blog-tag">${t}</span>`).join('');
+        const date = formatBlogDate(post.publishedAt);
+
+        return `
+            <button class="blog-back-btn" id="blog-back-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Back
+            </button>
+            <article class="blog-article">
+                <div class="blog-article-meta">
+                    <span class="blog-card-date">${date}</span>
+                    ${tags ? '<div class="blog-card-tags">' + tags + '</div>' : ''}
+                </div>
+                <h2 class="blog-article-title">${post.title}</h2>
+                <div class="blog-article-body">${post.body || ''}</div>
+            </article>
+        `;
+    }
+
+    function renderBlogFeed(container, posts) {
+        if (!container) return;
+
+        if (!posts || posts.length === 0) {
+            container.innerHTML = '<div class="tweet-cards-empty">No blog posts yet</div>';
+            return;
+        }
+
+        const header = `
+            <div class="blog-feed-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="blog-feed-icon"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span class="blog-feed-title">Woo's Blog</span>
+            </div>
+        `;
+
+        const cards = posts.map(renderBlogPost).join('');
+        container.innerHTML = header + '<div class="blog-cards-list">' + cards + '</div>';
+
+        // Click handlers to expand posts
+        container.querySelectorAll('.blog-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const postId = card.dataset.postId;
+                const post = posts.find(p => p.id === postId);
+                if (post) {
+                    container.innerHTML = renderBlogExpanded(post);
+                    container.scrollTop = 0;
+                    // Back button
+                    container.querySelector('#blog-back-btn')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        renderBlogFeed(container, posts);
+                        container.scrollTop = 0;
+                    });
+                }
+            });
+        });
+    }
+
+    function showBlogView() {
+        const xContainer = elements.xFeedContainer;
+        const blogContainer = document.getElementById('blog-container');
+        if (!xContainer || !blogContainer) return;
+
+        currentView = 'blog';
+        xContainer.style.display = 'none';
+        blogContainer.style.display = '';
+
+        // Update switcher buttons
+        document.getElementById('view-x-btn')?.classList.remove('active');
+        document.getElementById('view-blog-btn')?.classList.add('active');
+
+        // Fetch and render if not already loaded
+        if (!blogContainer.querySelector('.blog-cards-list') && !blogContainer.querySelector('.blog-article')) {
+            blogContainer.innerHTML = '<div class="x-feed-loading"><div class="loader-spinner" style="width:24px;height:24px;border-width:2px;"></div></div>';
+            fetchBlogData().then(posts => {
+                renderBlogFeed(blogContainer, posts);
+            });
+        }
+    }
+
+    function showXView() {
+        const xContainer = elements.xFeedContainer;
+        const blogContainer = document.getElementById('blog-container');
+        if (!xContainer || !blogContainer) return;
+
+        currentView = 'x';
+        xContainer.style.display = '';
+        blogContainer.style.display = 'none';
+
+        // Update switcher buttons
+        document.getElementById('view-x-btn')?.classList.add('active');
+        document.getElementById('view-blog-btn')?.classList.remove('active');
+    }
+
+    function initViewSwitcher() {
+        const xBtn = document.getElementById('view-x-btn');
+        const blogBtn = document.getElementById('view-blog-btn');
+
+        if (xBtn) {
+            xBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showXView();
+            });
+        }
+        if (blogBtn) {
+            blogBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showBlogView();
+            });
+        }
+    }
+
     /**
      * Hides the X feed modal
      */
@@ -886,8 +1167,97 @@
     // Performance tracking
     let activeSparkCount = 0;
 
+    // Batched animation loop — all sparks share one rAF
+    const activeSparks = [];
+    let sparkLoopRunning = false;
+
+    function runSparkLoop(currentTime) {
+        if (activeSparks.length === 0) {
+            sparkLoopRunning = false;
+            return;
+        }
+
+        for (let i = activeSparks.length - 1; i >= 0; i--) {
+            const s = activeSparks[i];
+            const elapsed = currentTime - s.startTime;
+            const progress = Math.min(elapsed / s.lifetime, 1);
+
+            if (progress >= 1) {
+                s.el.remove();
+                activeSparkCount--;
+                activeSparks.splice(i, 1);
+                continue;
+            }
+
+            const eased = 1 - Math.pow(1 - progress, 2);
+            let cx = s.sx + (s.fx - s.sx) * eased;
+            let cy = s.sy + (s.fy - s.sy) * eased;
+
+            // Gravity
+            cy += s.gravity * elapsed * elapsed * 0.001;
+
+            // Willow drift
+            if (s.isWillow && progress > 0.5) {
+                cx += Math.sin(elapsed * 0.01) * 2 * (progress - 0.5);
+            }
+
+            // Micro-wiggle
+            const wd = 1 - progress;
+            cx += Math.sin(s.wp) * s.wa * wd * 0.6;
+            cy += Math.cos(s.wp * 1.3) * s.wa * wd * 0.6;
+            s.wp += 0.06;
+
+            // Spiral
+            if (s.spiralProgress !== null) {
+                const sa = s.spiralProgress * Math.PI * 4 + elapsed * 0.006;
+                cx += Math.cos(sa) * 6 * (1 - progress);
+                cy += Math.sin(sa) * 6 * (1 - progress);
+            }
+
+            // Viewport culling
+            const pad = 100;
+            const offScreen = cx < -pad || cx > window.innerWidth + pad ||
+                cy < -pad || cy > window.innerHeight + pad;
+
+            if (offScreen && progress > 0.6) {
+                s.el.remove();
+                activeSparkCount--;
+                activeSparks.splice(i, 1);
+                continue;
+            }
+
+            // Crossette split
+            if (s.splitDelay !== null && elapsed > s.splitDelay && !s.split) {
+                s.split = true;
+                if (activeSparkCount + 2 <= FIREWORKS_CONFIG.maxActiveSparks) {
+                    for (let j = 0; j < 2; j++) {
+                        createSpark(cx, cy, s.angle + j * Math.PI, s.config, s.color, 0);
+                    }
+                }
+                s.el.remove();
+                activeSparkCount--;
+                activeSparks.splice(i, 1);
+                continue;
+            }
+
+            if (!offScreen) {
+                s.el.style.transform = `translate3d(${cx - s.sx}px, ${cy - s.sy}px, 0)`;
+                s.el.style.opacity = 1 - progress;
+            }
+        }
+
+        requestAnimationFrame(runSparkLoop);
+    }
+
+    function ensureSparkLoop() {
+        if (!sparkLoopRunning) {
+            sparkLoopRunning = true;
+            requestAnimationFrame(runSparkLoop);
+        }
+    }
+
     function initFireworks() {
-        // Create fireworks container
+        if (fireworksContainer) return; // Prevent duplicate containers
         fireworksContainer = document.createElement('div');
         fireworksContainer.className = 'fireworks-container';
         document.body.appendChild(fireworksContainer);
@@ -1136,128 +1506,43 @@
 
     function createSpark(startX, startY, angle, config, baseColor, delay, customRadius = null, spiralProgress = null, isWillow = false, splitDelay = null) {
         setTimeout(() => {
-            // Performance limit: skip creating spark if too many active
-            if (activeSparkCount >= FIREWORKS_CONFIG.maxActiveSparks) {
-                return;
-            }
-            
+            if (activeSparkCount >= FIREWORKS_CONFIG.maxActiveSparks) return;
+
             const spark = document.createElement('div');
             spark.className = 'firework-spark';
-            
+
             const color = Math.random() < 0.3 ? baseColor : getRandomColor();
-            // Random spark size within tier range (2-5px as per spec)
             const sparkSize = randomRange(config.sparkSizeMin, config.sparkSizeMax);
-            
-            spark.style.background = color.value;
-            spark.style.width = sparkSize + 'px';
-            spark.style.height = sparkSize + 'px';
-            spark.style.left = startX + 'px';
-            spark.style.top = startY + 'px';
-            // Ultra-lightweight: minimal glow, no box-shadow for better performance
-            spark.style.willChange = 'transform, opacity';
-            spark.style.transform = 'translate3d(-50%, -50%, 0)'; // GPU acceleration
-            // Use filter for lighter glow effect instead of box-shadow
-            spark.style.filter = `drop-shadow(0 0 ${sparkSize * 0.8}px ${color.value})`;
-            
+
+            spark.style.cssText = `background:${color.value};width:${sparkSize}px;height:${sparkSize}px;left:${startX}px;top:${startY}px;transform:translate3d(-50%,-50%,0)`;
+
             fireworksContainer.appendChild(spark);
             activeSparkCount++;
-            
+
             const radius = customRadius || config.radius;
             const velocity = randomRange(0.8, 1.2);
-            const finalX = startX + Math.cos(angle) * radius * velocity;
-            const finalY = startY + Math.sin(angle) * radius * velocity;
-            
-            const startTime = performance.now();
-            const lifetime = config.lifetime;
-            let wigglePhase = Math.random() * Math.PI * 2;
-            let wiggleAmplitude = randomRange(2, 5);
-            
-            function animateSpark(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / lifetime, 1);
-                
-                if (progress >= 1) {
-                    spark.remove();
-                    activeSparkCount--;
-                    return;
-                }
-                
-                // Easing: fast out, slow decay
-                const eased = 1 - Math.pow(1 - progress, 2);
-                
-                // Position
-                let currentX = startX + (finalX - startX) * eased;
-                let currentY = startY + (finalY - startY) * eased;
-                
-                // Gravity (stronger for willow)
-                const gravity = isWillow ? config.gravity * 1.5 : config.gravity;
-                currentY += gravity * elapsed * elapsed * 0.001;
-                
-                // Willow sideways drift
-                if (isWillow && progress > 0.5) {
-                    currentX += Math.sin(elapsed * 0.01) * 2 * (progress - 0.5);
-                }
-                
-                // Reduced micro-wiggle (40% less frequent updates for better performance)
-                const wiggleDecay = 1 - progress;
-                const wiggleX = Math.sin(wigglePhase) * wiggleAmplitude * wiggleDecay * 0.6; // 40% reduction
-                const wiggleY = Math.cos(wigglePhase * 1.3) * wiggleAmplitude * wiggleDecay * 0.6; // 40% reduction
-                wigglePhase += 0.06; // Slower phase update (40% reduction)
-                
-                currentX += wiggleX;
-                currentY += wiggleY;
-                
-                // Spiral rotation - reduced intensity for 40% better performance
-                if (spiralProgress !== null) {
-                    const spiralAngle = spiralProgress * Math.PI * 4 + elapsed * 0.006; // 40% slower
-                    const spiralOffsetX = Math.cos(spiralAngle) * 6 * (1 - progress); // 40% reduction
-                    const spiralOffsetY = Math.sin(spiralAngle) * 6 * (1 - progress); // 40% reduction
-                    currentX += spiralOffsetX;
-                    currentY += spiralOffsetY;
-                }
-                
-                // Aggressive viewport culling: skip DOM updates if spark is far off-screen
-                const viewportPadding = 100; // Further reduced padding (40% reduction)
-                const isOffScreen = currentX < -viewportPadding || currentX > window.innerWidth + viewportPadding ||
-                    currentY < -viewportPadding || currentY > window.innerHeight + viewportPadding;
-                
-                if (isOffScreen && progress > 0.6) {
-                    // Remove if far off-screen and mostly faded (earlier removal - 40% improvement)
-                    spark.remove();
-                    activeSparkCount--;
-                    return;
-                }
-                
-                // Throttle updates: only update every other frame when off-screen or fading
-                const shouldUpdate = !isOffScreen || progress < 0.4;
-                if (shouldUpdate) {
-                    // Use translate3d for GPU acceleration
-                    spark.style.transform = `translate3d(${currentX - startX}px, ${currentY - startY}px, 0)`;
-                    spark.style.opacity = 1 - progress;
-                } else {
-                    // Skip DOM update for off-screen sparks (40% fewer updates)
-                    // Still continue animation for physics calculations
-                }
-                
-                // Crossette split - only if under spark limit (reduced to 2 splits for 40% less)
-                if (splitDelay !== null && elapsed > splitDelay && !spark.dataset.split) {
-                    spark.dataset.split = 'true';
-                    // Create only 2 perpendicular sparks (reduced from 4) for better performance
-                    if (activeSparkCount + 2 <= FIREWORKS_CONFIG.maxActiveSparks) {
-                        for (let i = 0; i < 2; i++) {
-                            const splitAngle = angle + (i * Math.PI);
-                            createSpark(currentX, currentY, splitAngle, config, color, 0);
-                        }
-                    }
-                    spark.remove();
-                    activeSparkCount--;
-                    return;
-                }
-                
-                requestAnimationFrame(animateSpark);
-            }
-            
-            requestAnimationFrame(animateSpark);
+
+            activeSparks.push({
+                el: spark,
+                sx: startX,
+                sy: startY,
+                fx: startX + Math.cos(angle) * radius * velocity,
+                fy: startY + Math.sin(angle) * radius * velocity,
+                startTime: performance.now(),
+                lifetime: config.lifetime,
+                gravity: isWillow ? config.gravity * 1.5 : config.gravity,
+                isWillow: isWillow,
+                wp: Math.random() * Math.PI * 2,
+                wa: randomRange(2, 5),
+                spiralProgress: spiralProgress,
+                splitDelay: splitDelay,
+                split: false,
+                angle: angle,
+                config: config,
+                color: color
+            });
+
+            ensureSparkLoop();
         }, delay);
     }
 
@@ -1269,7 +1554,6 @@
     }
 
     function startFireworks(button) {
-        if (!fireworksContainer) initFireworks();
         
         isHovering = true;
         
@@ -1299,7 +1583,6 @@
     }
 
     function startContinueFireworks(button) {
-        if (!fireworksContainer) initFireworks();
         
         isContinueHovering = true;
         
@@ -1333,21 +1616,6 @@
         
         // Initialize SVG gradient animation
         initSvgGradientAnimation();
-        
-        // Initialize fireworks
-        initFireworks();
-        
-        // #region agent log
-        // Measure dimensions after icon is rendered
-        setTimeout(() => {
-            const rect = elements.emailIcon.getBoundingClientRect();
-            const computedStyle = window.getComputedStyle(elements.emailIcon);
-            const svg = elements.emailIcon.querySelector('.email-icon-svg');
-            const svgRect = svg ? svg.getBoundingClientRect() : null;
-            
-            fetch('http://127.0.0.1:7242/ingest/8cbfede0-90f6-438a-85b5-ebf8c832d699',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initEmailIcon',message:'Email icon dimensions measurement',data:{containerWidth:rect.width,containerHeight:rect.height,containerTop:rect.top,containerLeft:rect.left,borderWidth:computedStyle.borderWidth,boxSizing:computedStyle.boxSizing,padding:computedStyle.padding,svgWidth:svgRect?.width,svgHeight:svgRect?.height,cssWidth:computedStyle.width,cssHeight:computedStyle.height},timestamp:Date.now(),sessionId:'debug-session',runId:'border-debug',hypothesisId:'A'})}).catch(()=>{});
-        }, 100);
-        // #endregion
         
         // Fireworks on hover
         elements.emailIcon.addEventListener('mouseenter', () => {
@@ -1393,14 +1661,16 @@
         setEmailTimestamp();
         initAccessibility();
         initClickHandler();
+
+        // Initialize fireworks once before anything that needs them
+        initFireworks();
+
         initButtonEffects();
         initParallax();
         initXFeedModal();
+        initViewSwitcher();
         initEmailIcon();
         initImageLoading();
-        
-        // Initialize fireworks for welcome firework
-        initFireworks();
         
         // Fire 5-7 fireworks 2 seconds after page load
         setTimeout(() => {

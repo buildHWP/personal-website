@@ -30,8 +30,7 @@
     --glass-border: rgba(255, 255, 255, 0.18);
     
     /* Background opacity controls - reduce to show more background, increase for readability */
-    /* REVERT: Change both values back to 0.05 and 0.025 respectively */
-    --glass-panel-opacity: 0.0015;
+    --glass-panel-opacity: 0.12;
     --icon-panel-opacity: 0.01;
     
     /* Letter content edge fade - stronger and wider (100px fade, 0.3 edge opacity) */
@@ -224,6 +223,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    contain: layout style;
 }
 
 /* ========================================
@@ -651,11 +651,29 @@ body {
    A/B Test Classes - Visual Comparison
 ======================================== */
 
-/* Test A: Reduced backdrop filter (blur/saturate) - Radial mask stays the same */
+/* Test A: Tuned for readability — stronger blur, full coverage mask */
 .glass-letter.test-a::after {
-    -webkit-backdrop-filter: blur(10px) saturate(0.5);
-    backdrop-filter: blur(10px) saturate(0.5);
-    /* Radial mask gradient remains unchanged */
+    -webkit-backdrop-filter: blur(28px) saturate(1.2);
+    backdrop-filter: blur(28px) saturate(1.2);
+    /* Wider radial mask: strong center, gentle fade only at very edges */
+    -webkit-mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 55%,
+        rgba(0, 0, 0, 0.85) 70%,
+        rgba(0, 0, 0, 0.5) 85%,
+        rgba(0, 0, 0, 0.15) 95%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+        ellipse 100% 100% at center,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 55%,
+        rgba(0, 0, 0, 0.85) 70%,
+        rgba(0, 0, 0, 0.5) 85%,
+        rgba(0, 0, 0, 0.15) 95%,
+        rgba(0, 0, 0, 0) 100%
+    );
 }
 
 /* Test B: Reduced radial mask gradient - Backdrop filter stays the same */
@@ -728,7 +746,7 @@ body {
     z-index: 2;
 }
 
-/* Edge fade overlay - fades inward from all 4 edges (stronger and wider) */
+/* Edge fade overlay + subtle dark scrim for text readability */
 .letter-content::before {
     content: '';
     position: absolute;
@@ -736,7 +754,15 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--letter-overlay-gradient);
+    background:
+        var(--letter-overlay-gradient),
+        radial-gradient(
+            ellipse 90% 90% at center,
+            rgba(0, 0, 0, 0.18) 0%,
+            rgba(0, 0, 0, 0.14) 50%,
+            rgba(0, 0, 0, 0.06) 80%,
+            rgba(0, 0, 0, 0) 100%
+        );
     z-index: 1;
     pointer-events: none;
     border-radius: 16px;
@@ -758,6 +784,8 @@ body {
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
     font-family: 'Roboto Mono', 'Courier New', monospace;
     letter-spacing: 0.02em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5),
+                 0 0 8px rgba(0, 0, 0, 0.15);
     
     /* Hidden until JS triggers */
     opacity: 0;
@@ -856,8 +884,9 @@ body {
     word-wrap: break-word;
     word-break: normal;
     overflow: visible;
-    /* Enhanced readability with more transparent background */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    /* Dual-layer text shadow: crisp near-shadow + soft ambient halo */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55),
+                 0 0 10px rgba(0, 0, 0, 0.2);
     opacity: 1;
 }
 
@@ -952,6 +981,8 @@ body {
     color: var(--text-primary);
     letter-spacing: -0.01em;
     opacity: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5),
+                 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
 /* ========================================
@@ -1487,6 +1518,7 @@ body {
     max-height: 85vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     /* Override glass-letter defaults for x-feed context */
     opacity: 0;
     transform: scale(0.96) translateY(12px);
@@ -1505,6 +1537,8 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .x-feed-close {
@@ -1538,9 +1572,9 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    margin-top: 32px;
+    margin-top: 4px;
     border-radius: 12px;
-    min-height: 400px;
+    min-height: 0;
 }
 
 /* Loading state */
@@ -1554,6 +1588,12 @@ body {
 /* Style the Twitter iframe container */
 .x-feed-container .twitter-timeline {
     border-radius: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font-system);
+    font-size: 14px;
+    display: block;
+    text-align: center;
+    padding: 40px 20px;
 }
 
 /* Twitter timeline iframe styling */
@@ -1561,6 +1601,647 @@ body {
 .x-feed-container iframe {
     border-radius: 12px !important;
     background: transparent !important;
+}
+
+/* ========================================
+   X Fallback Profile Card
+======================================== */
+.x-fallback-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+    text-align: center;
+    min-height: 300px;
+}
+
+.x-fallback-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.x-fallback-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.x-fallback-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.x-fallback-name {
+    font-family: var(--font-system);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.x-fallback-handle {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.x-fallback-bio {
+    font-family: var(--font-system);
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 400px;
+    margin-bottom: 28px;
+}
+
+.x-fallback-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    color: var(--text-primary);
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s var(--transition-smooth);
+    cursor: pointer;
+}
+
+.x-fallback-button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: scale(1.03);
+}
+
+.x-fallback-button:active {
+    transform: scale(0.98);
+}
+
+.x-fallback-button svg {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Tweet Cards (RSS Feed)
+======================================== */
+.x-feed-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 14px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+}
+
+.x-feed-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.x-feed-logo {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.x-feed-header-title {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.x-feed-follow-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 18px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #000;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.2s var(--transition-smooth);
+    letter-spacing: -0.01em;
+}
+
+.x-feed-follow-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.04);
+}
+
+.x-feed-follow-btn:active {
+    transform: scale(0.97);
+}
+
+/* Filter Tabs */
+.x-feed-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 4px 6px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.x-feed-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.x-feed-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: var(--font-system);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s var(--transition-smooth);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.x-feed-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.x-feed-tab.active {
+    background: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.tab-count {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 5px;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+.x-feed-tab.active .tab-count {
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Empty state */
+.tweet-cards-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    font-family: var(--font-system);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+}
+
+.tweet-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tweet-card {
+    display: block;
+    padding: 14px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: background 0.2s var(--transition-smooth);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+}
+
+.tweet-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.tweet-card:active {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.tweet-card-type-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 4px;
+    margin-left: 34px;
+    letter-spacing: 0.01em;
+}
+
+.tweet-card-type-label svg {
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.tweet-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.tweet-card-avatar {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tweet-card-name {
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.tweet-card-handle {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+}
+
+.tweet-card-dot {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+}
+
+.tweet-card-time {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+}
+
+.tweet-card-text {
+    font-family: var(--font-system);
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.tweet-card-image {
+    margin-top: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.tweet-card-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    max-height: 300px;
+}
+
+/* ========================================
+   View Switcher (X Feed / Blog)
+======================================== */
+.view-switcher {
+    display: flex;
+    gap: 6px;
+    padding: 0 0 10px;
+    z-index: 5;
+    position: relative;
+}
+
+.view-switcher-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.45);
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s var(--transition-smooth);
+    flex: 1;
+    justify-content: center;
+}
+
+.view-switcher-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.view-switcher-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.view-switcher-btn svg {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Blog Container & Cards
+======================================== */
+.blog-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+    min-height: 0;
+}
+
+.blog-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.blog-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.blog-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.blog-feed-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 4px 14px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+}
+
+.blog-feed-icon {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.blog-feed-title {
+    font-family: var(--font-system);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: -0.02em;
+}
+
+.blog-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.blog-card {
+    padding: 16px 12px;
+    border-radius: 12px;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: background 0.2s var(--transition-smooth);
+}
+
+.blog-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.blog-card:active {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.blog-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.blog-card-date {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.01em;
+}
+
+.blog-card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.blog-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.02em;
+}
+
+.blog-card-title {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+}
+
+.blog-card-preview {
+    font-family: var(--font-system);
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+}
+
+/* Blog expanded article */
+.blog-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-system);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--transition-smooth);
+    margin-bottom: 16px;
+}
+
+.blog-back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.blog-article {
+    padding: 0 4px;
+}
+
+.blog-article-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.blog-article-title {
+    font-family: var(--font-system);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+}
+
+.blog-article-body {
+    font-family: var(--font-system);
+    font-size: 14px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.blog-article-body p {
+    margin: 0 0 12px;
+}
+
+.blog-article-body h2,
+.blog-article-body h3,
+.blog-article-body h4 {
+    color: var(--text-primary);
+    margin: 20px 0 8px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.blog-article-body h2 { font-size: 17px; }
+.blog-article-body h3 { font-size: 15px; }
+.blog-article-body h4 { font-size: 14px; }
+
+.blog-article-body blockquote {
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
+    padding-left: 14px;
+    margin: 12px 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.blog-article-body ul,
+.blog-article-body ol {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.blog-article-body li {
+    margin-bottom: 4px;
+}
+
+.blog-article-body pre {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    font-size: 12px;
+    margin: 12px 0;
+}
+
+.blog-article-body code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9em;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.blog-article-body figure {
+    margin: 14px 0;
+}
+
+.blog-article-body figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+}
+
+.blog-article-body figcaption {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 6px;
+    text-align: center;
+}
+
+.blog-article-body hr {
+    border: none;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+    margin: 20px 0;
+}
+
+.blog-article-body a {
+    color: var(--frosted-blue);
+    text-decoration: underline;
+    text-decoration-color: rgba(144, 219, 244, 0.3);
+    transition: text-decoration-color 0.2s;
+}
+
+.blog-article-body a:hover {
+    text-decoration-color: rgba(144, 219, 244, 0.8);
 }
 
 /* Scrollbar for X feed container */
@@ -1623,6 +2304,7 @@ body {
     pointer-events: none;
     z-index: 4;
     overflow: hidden;
+    contain: layout style;
 }
 
 .firework-rocket {
@@ -1644,7 +2326,7 @@ body {
     pointer-events: none;
     will-change: transform, opacity;
     mix-blend-mode: screen;
-    filter: blur(0.5px);
+    contain: strict;
 }
 
 .firework-flash {
