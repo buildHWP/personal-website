@@ -10,7 +10,7 @@
 // ============================================
 const RSS_FEED_URL = process.env.RSS_FEED_URL || 'https://rss.app/feeds/x89cEuJBaiwXU0lH.xml';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
