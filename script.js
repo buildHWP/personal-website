@@ -1062,6 +1062,34 @@
      * Initializes X feed modal event handlers
      */
     function initXFeedModal() {
+        // Fix scrolling: trap wheel events inside the modal so they don't bubble
+        // to the landing section (which has overflow:hidden and eats the events)
+        if (elements.xFeedOverlay) {
+            elements.xFeedOverlay.addEventListener('wheel', (e) => {
+                // Only trap when feed is visible
+                if (!state.xFeedVisible) return;
+
+                // Find the scrollable container (feed or blog, whichever is visible)
+                const feedContainer = elements.xFeedContainer;
+                const blogContainer = document.getElementById('blog-container');
+                const scrollable = feedContainer && feedContainer.style.display !== 'none'
+                    ? feedContainer
+                    : blogContainer;
+
+                if (!scrollable) return;
+
+                const atTop = scrollable.scrollTop <= 0 && e.deltaY < 0;
+                const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1 && e.deltaY > 0;
+
+                // Prevent the page from scrolling when we're inside the modal
+                if (!atTop && !atBottom) {
+                    e.preventDefault();
+                    scrollable.scrollTop += e.deltaY;
+                }
+                e.stopPropagation();
+            }, { passive: false });
+        }
+
         // Close button click
         if (elements.xFeedClose) {
             elements.xFeedClose.addEventListener('click', (e) => {
