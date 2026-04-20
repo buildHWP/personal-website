@@ -3,8 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    
+    <title>Hyeonwoo Park</title>
+    <meta name="description" content="Learn about Hyeonwoo Park here. Head of Data Operations at NationGraph, Employee #1. Passionate about frontier technology, AI, and early-stage investing.">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Hyeonwoo Park">
+    <meta property="og:description" content="Learn about Hyeonwoo Park here. Head of Data Operations at NationGraph, Employee #1. Passionate about frontier technology, AI, and early-stage investing.">
+    <meta property="og:image" content="background.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@h_woopark">
+    <meta name="twitter:title" content="Hyeonwoo Park">
+    <meta name="twitter:description" content="Learn about Hyeonwoo Park here. Head of Data Operations at NationGraph, Employee #1. Passionate about frontier technology, AI, and early-stage investing.">
+
     <!-- Preload the background image for faster loading -->
     <link rel="preload" as="image" href="background.jpg" fetchpriority="high">
     
@@ -13,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Canela:wght@300;400;500;600;700&family=Graphik:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
     <!-- Loading screen -->
@@ -25,12 +38,12 @@
     <section class="landing" id="landing">
         <!-- Blurred background fill for edges -->
         <div class="bg-blur" id="bg-blur"></div>
-        
+
         <!-- Parallax background container -->
         <div class="parallax-bg" id="parallax-bg">
-            <img 
-                src="background.jpg" 
-                alt="Mountain landscape with ethereal sky" 
+            <img
+                src="background.jpg"
+                alt="Mountain landscape with ethereal sky"
                 class="bg-image"
                 id="bg-image"
                 loading="eager"
@@ -59,20 +72,20 @@
                         </linearGradient>
                     </defs>
                     <!-- Rotating border path (thicker stroke behind) -->
-                    <path class="email-icon-path-border" 
-                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
-                          stroke="url(#rainbow-gradient)" 
-                          stroke-width="1.9" 
-                          stroke-linecap="round" 
-                          stroke-linejoin="round" 
+                    <path class="email-icon-path-border"
+                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z"
+                          stroke="url(#rainbow-gradient)"
+                          stroke-width="1.9"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                           fill="none"/>
                     <!-- Original path (on top) -->
-                    <path class="email-icon-path" 
-                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z" 
-                          stroke="currentColor" 
-                          stroke-width="1.5" 
-                          stroke-linecap="round" 
-                          stroke-linejoin="round" 
+                    <path class="email-icon-path"
+                          d="M4 7L12 13L20 7M4 7C4 6.44772 4.44772 6 5 6H19C19.5523 6 20 6.44772 20 7V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V7Z"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                           fill="none"/>
                 </svg>
             </div>
@@ -104,7 +117,7 @@
                             <span class="meta-value" id="email-timestamp">Loading...</span>
                         </div>
                     </header>
-                    
+
                     <!-- Email body - split-flap display -->
                     <div class="email-body" id="email-body">
                         <h3 class="split-flap-line email-header" data-text="Dear Reader,"></h3>
@@ -115,12 +128,12 @@
                         <p class="split-flap-line" data-text="In the long run, I will return to **early-stage investing**, so don't hesitate to reach out if you'd like to talk about **frontier technology, AI**, or the **kinds of ideas and systems that genuinely change how we live and work**. I yearn to build things that **create tangible, lasting, value for society**."></p>
                         <p class="split-flap-line" data-text="Take care for now. I'm sure our paths will cross—one way or another."></p>
                     </div>
-                    
+
                     <!-- Signature -->
                     <footer class="email-signature" id="email-signature">
                         <span class="signature-name split-flap-line" data-text="Cheers,|NEWLINE|**Woo**"></span>
                     </footer>
-                    
+
                     <!-- Continue button -->
                     <button class="letter-continue" id="letter-continue" aria-label="Continue">
                         <span>Continue</span>
@@ -137,14 +150,33 @@
             <article class="glass-letter x-feed-modal" id="x-feed-modal" role="dialog" aria-label="X Timeline">
                 <div class="x-feed-content">
                     <button class="x-feed-close" id="x-feed-close" aria-label="Close">&times;</button>
+
+                    <!-- View switcher banner -->
+                    <div class="view-switcher" id="view-switcher">
+                        <button class="view-switcher-btn active" id="view-x-btn" data-view="x">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                            Feed
+                        </button>
+                        <button class="view-switcher-btn" id="view-blog-btn" data-view="blog">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            Woo's Blog
+                        </button>
+                    </div>
+
+                    <!-- X feed view -->
                     <div class="x-feed-container" id="x-feed-container">
-                        <!-- X timeline will be injected here -->
+                        <!-- Tweet cards will be injected here by JS -->
+                    </div>
+
+                    <!-- Blog view -->
+                    <div class="blog-container" id="blog-container" style="display:none;">
+                        <!-- Blog posts will be injected here by JS -->
                     </div>
                 </div>
             </article>
         </div>
     </section>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=11"></script>
 </body>
 </html>
