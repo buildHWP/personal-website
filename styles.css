@@ -25,12 +25,12 @@
     --celadon: #b9fbc0;
     
     /* Apple Glass Material */
-    --glass-bg: rgba(180, 185, 195, 0.10);
-    --glass-bg-elevated: rgba(180, 185, 195, 0.14);
+    --glass-bg: rgba(220, 225, 235, 0.08);
+    --glass-bg-elevated: rgba(220, 225, 235, 0.12);
     --glass-border: rgba(255, 255, 255, 0.18);
-    
+
     /* Background opacity controls - reduce to show more background, increase for readability */
-    --glass-panel-opacity: 0.12;
+    --glass-panel-opacity: 0.07;
     --icon-panel-opacity: 0.01;
     
     /* Letter content edge fade - stronger and wider (100px fade, 0.3 edge opacity) */
@@ -581,9 +581,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(180, 185, 195, var(--glass-panel-opacity));
-    -webkit-backdrop-filter: blur(36px) saturate(1.6);
-    backdrop-filter: blur(36px) saturate(1.6);
+    background: rgba(230, 235, 245, var(--glass-panel-opacity));
+    -webkit-backdrop-filter: blur(32px) saturate(1.4);
+    backdrop-filter: blur(32px) saturate(1.4);
     border-radius: 20px;
     box-shadow: var(--glass-shadow);
     z-index: 0;
@@ -758,9 +758,9 @@ body {
         var(--letter-overlay-gradient),
         radial-gradient(
             ellipse 90% 90% at center,
-            rgba(0, 0, 0, 0.18) 0%,
-            rgba(0, 0, 0, 0.14) 50%,
-            rgba(0, 0, 0, 0.06) 80%,
+            rgba(0, 0, 0, 0.10) 0%,
+            rgba(0, 0, 0, 0.07) 50%,
+            rgba(0, 0, 0, 0.03) 80%,
             rgba(0, 0, 0, 0) 100%
         );
     z-index: 1;
@@ -1524,17 +1524,19 @@ body {
     transform: scale(0.96) translateY(12px);
     transition: opacity 0.5s var(--transition-smooth),
                 transform 0.5s var(--transition-smooth);
-    /* Solid dark background for full readability */
-    background: rgba(18, 20, 24, 0.94);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Frosted light-grey glass */
+    background: rgba(160, 165, 180, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* Override the glass-letter ::after for feed modal */
 .x-feed-modal.glass-letter::after {
-    background: rgba(18, 20, 24, 0.96);
-    -webkit-backdrop-filter: blur(40px) saturate(1.2);
-    backdrop-filter: blur(40px) saturate(1.2);
+    background: rgba(180, 185, 200, 0.14);
+    -webkit-backdrop-filter: blur(44px) saturate(1.4);
+    backdrop-filter: blur(44px) saturate(1.4);
     -webkit-mask-image: none;
     mask-image: none;
 }
@@ -1546,7 +1548,7 @@ body {
 
 .x-feed-content {
     position: relative;
-    padding: 16px;
+    padding: 48px 16px 16px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1557,12 +1559,14 @@ body {
 
 .x-feed-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     width: 32px;
     height: 32px;
     border: none;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.25);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     color: var(--text-primary);
     font-size: 24px;
     line-height: 1;
@@ -1570,10 +1574,11 @@ body {
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
     z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .x-feed-close:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.35);
     transform: scale(1.1);
 }
 
@@ -1720,7 +1725,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 4px 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     margin-bottom: 8px;
     flex-shrink: 0;
 }
@@ -1788,10 +1793,10 @@ body {
     align-items: center;
     gap: 5px;
     padding: 8px 18px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 999px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.65);
     font-family: var(--font-system);
     font-size: 12.5px;
     font-weight: 500;
@@ -1805,16 +1810,18 @@ body {
     user-select: none;
     position: relative;
     z-index: 2;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 
 .x-feed-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(255, 255, 255, 0.9);
     border-color: rgba(255, 255, 255, 0.18);
 }
 
 .x-feed-tab.active {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.35);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.25);
 }
@@ -1859,19 +1866,23 @@ body {
     border-radius: 14px;
     text-decoration: none;
     color: #f0f0f0;
-    transition: background 0.2s ease, border-color 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.28);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .tweet-card:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .tweet-card:active {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(0, 0, 0, 0.32);
 }
 
 .tweet-card-type-label {
@@ -1911,6 +1922,14 @@ body {
     align-items: center;
     justify-content: center;
     color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+}
+
+.tweet-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .tweet-card-name {
@@ -1948,6 +1967,7 @@ body {
     margin: 0;
     overflow-wrap: break-word;
     word-break: normal;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .tweet-card-image {
@@ -1986,10 +2006,10 @@ body {
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.55);
     font-family: var(--font-system);
     font-size: 13px;
     font-weight: 500;
@@ -1998,15 +2018,17 @@ body {
     transition: all 0.2s var(--transition-smooth);
     flex: 1;
     justify-content: center;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 
 .view-switcher-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .view-switcher-btn.active {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.32);
     color: rgba(255, 255, 255, 0.95);
     border-color: rgba(255, 255, 255, 0.2);
 }
@@ -2046,7 +2068,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 4px 4px 14px;
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     margin-bottom: 8px;
 }
 
@@ -2071,20 +2093,24 @@ body {
 .blog-card {
     padding: 18px 16px;
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.28);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     margin-bottom: 8px;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .blog-card:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .blog-card:active {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(0, 0, 0, 0.32);
 }
 
 .blog-card-meta {
@@ -2144,21 +2170,23 @@ body {
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
     font-family: var(--font-system);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s var(--transition-smooth);
     margin-bottom: 16px;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 
 .blog-back-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .blog-article {
@@ -2187,7 +2215,8 @@ body {
     font-family: var(--font-system);
     font-size: 14px;
     line-height: 1.65;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .blog-article-body p {
@@ -2281,7 +2310,7 @@ body {
 /* Force visible scrollbar for feed */
 .x-feed-container {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.25) transparent;
+    scrollbar-color: rgba(255,255,255,0.2) rgba(0,0,0,0.1);
 }
 
 .x-feed-container::-webkit-scrollbar {
@@ -2289,24 +2318,20 @@ body {
 }
 
 .x-feed-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 4px;
 }
 
 .x-feed-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.22);
     border-radius: 4px;
     border: 2px solid transparent;
     background-clip: padding-box;
 }
 
 .x-feed-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.35);
     background-clip: padding-box;
-}
-
-.x-feed-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Responsive adjustments */
@@ -2325,11 +2350,11 @@ body {
     .x-feed-overlay {
         padding: 12px;
     }
-    
+
     .x-feed-content {
         padding: 12px;
     }
-    
+
     .x-feed-close {
         top: 8px;
         right: 8px;

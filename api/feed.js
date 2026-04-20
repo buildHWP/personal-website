@@ -36,9 +36,11 @@ module.exports = async function handler(req, res) {
 
         const xml = await response.text();
         const posts = parseRSS(xml);
+        const profileImage = extractChannelImage(xml);
 
         return res.status(200).json({
             posts,
+            profileImage,
             source: 'rss',
             updatedAt: new Date().toISOString()
         });
@@ -115,6 +117,21 @@ function parseRSS(xml) {
     }
 
     return posts; // Return all posts from the feed
+}
+
+/**
+ * Extracts the channel-level profile image URL from RSS <image><url> tag
+ */
+function extractChannelImage(xml) {
+    // Get everything before the first <item> (the channel header)
+    const channelHeader = xml.split('<item>')[0] || '';
+    // Look for <image><url>...</url></image> in the channel header
+    const imageBlock = channelHeader.match(/<image>[\s\S]*?<\/image>/i);
+    if (imageBlock) {
+        const urlMatch = imageBlock[0].match(/<url>([^<]+)<\/url>/i);
+        if (urlMatch) return urlMatch[1].trim();
+    }
+    return null;
 }
 
 function extractTag(xml, tag) {

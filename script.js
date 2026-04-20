@@ -626,6 +626,8 @@
 
     // Current filter state
     let currentFilter = 'all';
+    // Profile image from RSS channel (Woo's avatar)
+    let feedProfileImage = null;
 
     function fetchFeedData() {
         if (cachedFeedData) return Promise.resolve(cachedFeedData);
@@ -638,6 +640,7 @@
             })
             .then(data => {
                 cachedFeedData = data;
+                if (data.profileImage) feedProfileImage = data.profileImage;
                 return data;
             })
             .catch(err => {
@@ -692,6 +695,15 @@
         const displayName = isRT && post.rtAuthor ? post.rtAuthor.name : 'Woo';
         const displayHandle = isRT && post.rtAuthor ? '@' + post.rtAuthor.handle : '@' + X_HANDLE;
 
+        // Avatar: use Woo's profile pic for own posts/replies, X logo fallback for RT authors
+        const isWooPost = !isRT;
+        let avatarInner;
+        if (isWooPost && feedProfileImage) {
+            avatarInner = `<img src="${feedProfileImage}" alt="${displayName}" loading="lazy">`;
+        } else {
+            avatarInner = `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+        }
+
         const imageHtml = post.image
             ? `<div class="tweet-card-image"><img src="${post.image}" alt="" loading="lazy"></div>` : '';
 
@@ -702,9 +714,7 @@
                 ${typeLabel}
                 <div class="tweet-card-header">
                     <div class="tweet-card-avatar">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                        </svg>
+                        ${avatarInner}
                     </div>
                     <span class="tweet-card-name">${displayName}</span>
                     <span class="tweet-card-handle">${displayHandle}</span>
@@ -1715,6 +1725,195 @@
     }
 
     // ========================================
+    // Bird Shadows — ambient flocks crossing the screen
+    // ========================================
+    const BIRD_CONFIG = {
+        minInterval: 7000,    // Min ms between flocks
+        maxInterval: 16000,   // Max ms between flocks
+        minFlock: 4,          // Min birds per flock
+        maxFlock: 12,         // Max birds per flock
+        speed: 0.6,           // Base px per frame (~60fps)
+        opacity: 0.14,        // Shadow darkness
+        maxFlocks: 4          // Max simultaneous flocks on screen
+    };
+
+    let birdCanvas = null;
+    let birdCtx = null;
+    let birdFlocks = [];
+    let birdRafId = null;
+    let birdTimer = null;
+
+    function initBirdShadows() {
+        birdCanvas = document.createElement('canvas');
+        birdCanvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
+        document.body.appendChild(birdCanvas);
+        resizeBirdCanvas();
+        window.addEventListener('resize', resizeBirdCanvas);
+        // First two flocks staggered for an alive sky from the start
+        setTimeout(() => {
+            birdFlocks.push(createFlock());
+        }, 2000 + Math.random() * 1500);
+        setTimeout(() => {
+            birdFlocks.push(createFlock());
+        }, 5000 + Math.random() * 2000);
+        scheduleFlock();
+        requestAnimationFrame(drawBirds);
+    }
+
+    function resizeBirdCanvas() {
+        if (!birdCanvas) return;
+        birdCanvas.width = window.innerWidth;
+        birdCanvas.height = window.innerHeight;
+    }
+
+    function scheduleFlock() {
+        const delay = BIRD_CONFIG.minInterval + Math.random() * (BIRD_CONFIG.maxInterval - BIRD_CONFIG.minInterval);
+        birdTimer = setTimeout(() => {
+            if (birdFlocks.length < BIRD_CONFIG.maxFlocks) {
+                birdFlocks.push(createFlock());
+            }
+            scheduleFlock();
+        }, delay);
+    }
+
+    function createFlock() {
+        const count = BIRD_CONFIG.minFlock + Math.floor(Math.random() * (BIRD_CONFIG.maxFlock - BIRD_CONFIG.minFlock + 1));
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        // Pick a corner/edge to enter from
+        const side = Math.floor(Math.random() * 4); // 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+        let startX, startY, angle;
+        const margin = 60;
+
+        switch (side) {
+            case 0: // top-left → bottom-right
+                startX = -margin;
+                startY = Math.random() * h * 0.3;
+                angle = Math.PI * 0.2 + Math.random() * 0.15;
+                break;
+            case 1: // top-right → bottom-left
+                startX = w + margin;
+                startY = Math.random() * h * 0.3;
+                angle = Math.PI - (Math.PI * 0.2 + Math.random() * 0.15);
+                break;
+            case 2: // left side → right
+                startX = -margin;
+                startY = h * 0.15 + Math.random() * h * 0.4;
+                angle = Math.random() * 0.3 - 0.15;
+                break;
+            case 3: // right side → left
+                startX = w + margin;
+                startY = h * 0.15 + Math.random() * h * 0.4;
+                angle = Math.PI + (Math.random() * 0.3 - 0.15);
+                break;
+        }
+
+        const speed = BIRD_CONFIG.speed * (0.8 + Math.random() * 0.4);
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+
+        // Leader bird
+        const leaderSize = 8 + Math.random() * 5;
+        const birds = [];
+
+        // V-formation: leader + two trailing wings
+        for (let i = 0; i < count; i++) {
+            let offX = 0, offY = 0;
+            if (i > 0) {
+                // Alternating left/right behind the leader
+                const wing = Math.ceil(i / 2);
+                const leftSide = i % 2 === 1;
+                // Perpendicular offset
+                const perpAngle = angle + (leftSide ? -Math.PI / 2 : Math.PI / 2);
+                const spread = wing * (18 + Math.random() * 8);
+                offX = Math.cos(perpAngle) * spread - Math.cos(angle) * wing * (14 + Math.random() * 6);
+                offY = Math.sin(perpAngle) * spread - Math.sin(angle) * wing * (14 + Math.random() * 6);
+            }
+
+            const sizeMul = i === 0 ? 1 : (0.65 + Math.random() * 0.3);
+            birds.push({
+                offX,
+                offY,
+                size: leaderSize * sizeMul,
+                wingPhase: Math.random() * Math.PI * 2,
+                wingSpeed: 0.04 + Math.random() * 0.02
+            });
+        }
+
+        return {
+            x: startX,
+            y: startY,
+            vx,
+            vy,
+            birds,
+            angle,
+            opacity: BIRD_CONFIG.opacity * (0.7 + Math.random() * 0.3)
+        };
+    }
+
+    function drawBirdShape(ctx, x, y, size, wingAngle, bodyAngle) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(bodyAngle);
+
+        // Wing span determined by wingAngle (flapping)
+        const wingDip = Math.sin(wingAngle) * size * 0.5;
+        const halfSpan = size;
+
+        ctx.beginPath();
+        // Left wing
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-halfSpan * 0.5, wingDip - size * 0.15, -halfSpan, wingDip);
+        // Right wing
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(halfSpan * 0.5, wingDip - size * 0.15, halfSpan, wingDip);
+
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawBirds(time) {
+        birdRafId = requestAnimationFrame(drawBirds);
+        if (!birdCtx) birdCtx = birdCanvas.getContext('2d');
+        const ctx = birdCtx;
+        const w = birdCanvas.width;
+        const h = birdCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        for (let f = birdFlocks.length - 1; f >= 0; f--) {
+            const flock = birdFlocks[f];
+            flock.x += flock.vx;
+            flock.y += flock.vy;
+
+            // Check if entire flock is off screen
+            const pad = 150;
+            const anyVisible = flock.birds.some(b => {
+                const bx = flock.x + b.offX;
+                const by = flock.y + b.offY;
+                return bx > -pad && bx < w + pad && by > -pad && by < h + pad;
+            });
+
+            if (!anyVisible) {
+                birdFlocks.splice(f, 1);
+                continue;
+            }
+
+            ctx.strokeStyle = `rgba(0, 0, 0, ${flock.opacity})`;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+
+            for (const bird of flock.birds) {
+                bird.wingPhase += bird.wingSpeed;
+                const bx = flock.x + bird.offX;
+                const by = flock.y + bird.offY;
+                drawBirdShape(ctx, bx, by, bird.size, bird.wingPhase, flock.angle);
+            }
+        }
+    }
+
+    // ========================================
     // Initialize
     // ========================================
     function init() {
@@ -1731,6 +1930,7 @@
         initViewSwitcher();
         initEmailIcon();
         initImageLoading();
+        initBirdShadows();
         
         // Fire 5-7 fireworks 2 seconds after page load
         setTimeout(() => {
