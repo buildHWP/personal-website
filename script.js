@@ -944,7 +944,7 @@
         return `
             <button class="blog-back-btn" id="blog-back-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                Back
+                All Posts
             </button>
             <article class="blog-article">
                 <div class="blog-article-meta">
@@ -961,7 +961,13 @@
         if (!container) return;
 
         if (!posts || posts.length === 0) {
-            container.innerHTML = '<div class="tweet-cards-empty">No blog posts yet</div>';
+            container.innerHTML = `
+                <div class="blog-feed-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="blog-feed-icon"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <span class="blog-feed-title">Woo's Blog</span>
+                </div>
+                <div class="tweet-cards-empty">No blog posts yet — check back soon!</div>
+            `;
             return;
         }
 
@@ -997,11 +1003,17 @@
     function showBlogView() {
         const xContainer = elements.xFeedContainer;
         const blogContainer = document.getElementById('blog-container');
+        const contentEl = document.querySelector('.x-feed-content');
         if (!xContainer || !blogContainer) return;
 
         currentView = 'blog';
         xContainer.style.display = 'none';
         blogContainer.style.display = '';
+
+        // Hide X-specific elements (header + tabs)
+        contentEl?.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => {
+            el.style.display = 'none';
+        });
 
         // Update switcher buttons
         document.getElementById('view-x-btn')?.classList.remove('active');
@@ -1019,11 +1031,17 @@
     function showXView() {
         const xContainer = elements.xFeedContainer;
         const blogContainer = document.getElementById('blog-container');
+        const contentEl = document.querySelector('.x-feed-content');
         if (!xContainer || !blogContainer) return;
 
         currentView = 'x';
         xContainer.style.display = '';
         blogContainer.style.display = 'none';
+
+        // Show X-specific elements again
+        contentEl?.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => {
+            el.style.display = '';
+        });
 
         // Update switcher buttons
         document.getElementById('view-x-btn')?.classList.add('active');

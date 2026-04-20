@@ -203,7 +203,8 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    const queryRes = await notion.post(
+    // Try with Status filter first, fall back to unfiltered if Status property doesn't exist
+    let queryRes = await notion.post(
       `https://api.notion.com/v1/databases/${databaseId}/query`,
       {
         filter: {
@@ -215,13 +216,27 @@ module.exports = async function handler(req, res) {
       }
     );
 
+    // If filter fails (Status property may not exist), retry without filter
     if (!queryRes.ok) {
       const err = await queryRes.json().catch(() => ({}));
-      res.status(queryRes.status).json({
-        error: err.message || 'Notion query failed',
-        code: err.code,
-      });
-      return;
+      if (err.code === 'validation_error') {
+        // Property doesn't exist — try without filter, sort by created_time
+        queryRes = await notion.post(
+          `https://api.notion.com/v1/databases/${databaseId}/query`,
+          {
+            sorts: [{ timestamp: 'created_time', direction: 'descending' }],
+            page_size: 50,
+          }
+        );
+      }
+      if (!queryRes.ok) {
+        const retryErr = await queryRes.json().catch(() => err);
+        res.status(queryRes.status).json({
+          error: retryErr.message || 'Notion query failed',
+          code: retryErr.code,
+        });
+        return;
+      }
     }
 
     const queryData = await queryRes.json();

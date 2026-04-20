@@ -2069,19 +2069,22 @@ body {
 }
 
 .blog-card {
-    padding: 16px 12px;
-    border-radius: 12px;
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+    padding: 18px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 8px;
     cursor: pointer;
-    transition: background 0.2s var(--transition-smooth);
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .blog-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 .blog-card:active {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .blog-card-meta {
@@ -2095,7 +2098,7 @@ body {
 .blog-card-date {
     font-family: 'Roboto Mono', monospace;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.55);
     letter-spacing: 0.01em;
 }
 
@@ -2131,7 +2134,7 @@ body {
     font-family: var(--font-system);
     font-size: 13px;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.7);
     margin: 0;
 }
 
