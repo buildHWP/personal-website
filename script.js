@@ -1013,12 +1013,14 @@
     function showBlogView() {
         const xContainer = elements.xFeedContainer;
         const blogContainer = document.getElementById('blog-container');
+        const resumeContainer = document.getElementById('resume-container');
         const contentEl = document.querySelector('.x-feed-content');
         if (!xContainer || !blogContainer) return;
 
         currentView = 'blog';
         xContainer.style.display = 'none';
         blogContainer.style.display = '';
+        if (resumeContainer) resumeContainer.style.display = 'none';
 
         // Hide X-specific elements (header + tabs)
         contentEl?.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => {
@@ -1028,6 +1030,7 @@
         // Update switcher buttons
         document.getElementById('view-x-btn')?.classList.remove('active');
         document.getElementById('view-blog-btn')?.classList.add('active');
+        document.getElementById('view-resume-btn')?.classList.remove('active');
 
         // Fetch and render if not already loaded
         if (!blogContainer.querySelector('.blog-cards-list') && !blogContainer.querySelector('.blog-article')) {
@@ -1041,12 +1044,14 @@
     function showXView() {
         const xContainer = elements.xFeedContainer;
         const blogContainer = document.getElementById('blog-container');
+        const resumeContainer = document.getElementById('resume-container');
         const contentEl = document.querySelector('.x-feed-content');
         if (!xContainer || !blogContainer) return;
 
         currentView = 'x';
         xContainer.style.display = '';
         blogContainer.style.display = 'none';
+        if (resumeContainer) resumeContainer.style.display = 'none';
 
         // Show X-specific elements again
         contentEl?.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => {
@@ -1056,11 +1061,170 @@
         // Update switcher buttons
         document.getElementById('view-x-btn')?.classList.add('active');
         document.getElementById('view-blog-btn')?.classList.remove('active');
+        document.getElementById('view-resume-btn')?.classList.remove('active');
+    }
+
+    // ========================================
+    // Resume Drop View
+    // ========================================
+    let resumeFiles = []; // Track selected files
+
+    function showResumeView() {
+        const xContainer = elements.xFeedContainer;
+        const blogContainer = document.getElementById('blog-container');
+        const resumeContainer = document.getElementById('resume-container');
+        const contentEl = document.querySelector('.x-feed-content');
+        if (!xContainer || !resumeContainer) return;
+
+        currentView = 'resume';
+        xContainer.style.display = 'none';
+        if (blogContainer) blogContainer.style.display = 'none';
+        resumeContainer.style.display = '';
+
+        // Hide X-specific elements
+        contentEl?.querySelectorAll('.x-feed-header, .x-feed-tabs').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Update switcher buttons
+        document.getElementById('view-x-btn')?.classList.remove('active');
+        document.getElementById('view-blog-btn')?.classList.remove('active');
+        document.getElementById('view-resume-btn')?.classList.add('active');
+    }
+
+    function initResumeForm() {
+        const form = document.getElementById('resume-form');
+        const fileInput = document.getElementById('resume-files');
+        const dropzone = document.getElementById('resume-dropzone');
+        const fileList = document.getElementById('resume-file-list');
+        const statusEl = document.getElementById('resume-status');
+        const submitBtn = document.getElementById('resume-submit');
+
+        if (!form || !fileInput) return;
+
+        // File input change
+        fileInput.addEventListener('change', () => {
+            addFiles(fileInput.files);
+            fileInput.value = ''; // Reset so same file can be re-added
+        });
+
+        // Drag and drop
+        if (dropzone) {
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('drag-over');
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('drag-over');
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('drag-over');
+                addFiles(e.dataTransfer.files);
+            });
+        }
+
+        function addFiles(newFiles) {
+            for (const f of newFiles) {
+                // Avoid duplicates by name+size
+                if (!resumeFiles.some(rf => rf.name === f.name && rf.size === f.size)) {
+                    resumeFiles.push(f);
+                }
+            }
+            renderFileList();
+        }
+
+        function renderFileList() {
+            if (!fileList) return;
+            if (resumeFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            fileList.innerHTML = resumeFiles.map((f, i) => {
+                const sizeMB = (f.size / 1024 / 1024).toFixed(1);
+                return `<div class="resume-file-item">
+                    <span>${f.name} (${sizeMB} MB)</span>
+                    <button type="button" class="resume-file-remove" data-index="${i}">&times;</button>
+                </div>`;
+            }).join('');
+
+            fileList.querySelectorAll('.resume-file-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    resumeFiles.splice(idx, 1);
+                    renderFileList();
+                });
+            });
+        }
+
+        // Form submit
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('resume-name').value.trim();
+            const met = document.getElementById('resume-met').value.trim();
+
+            if (!name || !met) {
+                showStatus('Please fill in all fields.', 'error');
+                return;
+            }
+
+            if (resumeFiles.length === 0) {
+                showStatus('Please attach at least one document.', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span').textContent = 'Sending...';
+            showStatus('', '');
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('message', 'Where/how we met: ' + met);
+                formData.append('_subject', 'woopark.ca resume submission - ' + name + ' (' + met + ')');
+                formData.append('_captcha', 'false');
+                formData.append('_template', 'table');
+
+                for (const f of resumeFiles) {
+                    formData.append('attachment', f);
+                }
+
+                const res = await fetch('https://formsubmit.co/ajax/woo@nationgraph.com', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (data.success === 'true' || data.success === true || res.ok) {
+                    showStatus('Sent! Thank you, I\'ll review soon.', 'success');
+                    form.reset();
+                    resumeFiles = [];
+                    renderFileList();
+                } else {
+                    throw new Error(data.message || 'Submission failed');
+                }
+            } catch (err) {
+                console.error('Resume submit error:', err);
+                showStatus('Something went wrong. Try emailing woo@nationgraph.com directly.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span').textContent = 'Submit';
+            }
+        });
+
+        function showStatus(msg, type) {
+            if (!statusEl) return;
+            statusEl.textContent = msg;
+            statusEl.className = 'resume-status' + (type ? ' ' + type : '');
+        }
     }
 
     function initViewSwitcher() {
         const xBtn = document.getElementById('view-x-btn');
         const blogBtn = document.getElementById('view-blog-btn');
+        const resumeBtn = document.getElementById('view-resume-btn');
 
         if (xBtn) {
             xBtn.addEventListener('click', (e) => {
@@ -1072,6 +1236,12 @@
             blogBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showBlogView();
+            });
+        }
+        if (resumeBtn) {
+            resumeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showResumeView();
             });
         }
     }
@@ -1097,12 +1267,14 @@
                 // Only trap when feed is visible
                 if (!state.xFeedVisible) return;
 
-                // Find the scrollable container (feed or blog, whichever is visible)
+                // Find the scrollable container (feed, blog, or resume — whichever is visible)
                 const feedContainer = elements.xFeedContainer;
                 const blogContainer = document.getElementById('blog-container');
-                const scrollable = feedContainer && feedContainer.style.display !== 'none'
-                    ? feedContainer
-                    : blogContainer;
+                const resumeContainer = document.getElementById('resume-container');
+                let scrollable;
+                if (feedContainer && feedContainer.style.display !== 'none') scrollable = feedContainer;
+                else if (blogContainer && blogContainer.style.display !== 'none') scrollable = blogContainer;
+                else scrollable = resumeContainer;
 
                 if (!scrollable) return;
 
@@ -1928,6 +2100,7 @@
         initParallax();
         initXFeedModal();
         initViewSwitcher();
+        initResumeForm();
         initEmailIcon();
         initImageLoading();
         initBirdShadows();

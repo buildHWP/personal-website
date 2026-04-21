@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Canela:wght@300;400;500;600;700&family=Graphik:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=17">
+    <link rel="stylesheet" href="styles.css?v=18">
 </head>
 <body>
     <!-- Loading screen -->
@@ -161,6 +161,10 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                             Woo's Blog
                         </button>
+                        <button class="view-switcher-btn view-switcher-btn-half" id="view-resume-btn" data-view="resume">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Resume
+                        </button>
                     </div>
 
                     <!-- X feed view -->
@@ -172,11 +176,43 @@
                     <div class="blog-container" id="blog-container" style="display:none;">
                         <!-- Blog posts will be injected here by JS -->
                     </div>
+
+                    <!-- Resume drop view -->
+                    <div class="resume-container" id="resume-container" style="display:none;">
+                        <div class="resume-greeting">
+                            <p class="resume-greeting-text">Thank you for finding me here. Hope to review soon :)</p>
+                        </div>
+                        <form class="resume-form" id="resume-form" enctype="multipart/form-data">
+                            <div class="resume-field">
+                                <label class="resume-label" for="resume-name">Full Name</label>
+                                <input class="resume-input" type="text" id="resume-name" name="name" required placeholder="Your full name">
+                            </div>
+                            <div class="resume-field">
+                                <label class="resume-label" for="resume-met">Where / how we met</label>
+                                <input class="resume-input" type="text" id="resume-met" name="met" required placeholder="e.g. NationGraph office, LinkedIn, mutual friend...">
+                            </div>
+                            <div class="resume-field">
+                                <label class="resume-label" for="resume-files">Documents</label>
+                                <div class="resume-dropzone" id="resume-dropzone">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span class="dropzone-text">Drop files here or click to browse</span>
+                                    <span class="dropzone-hint">PDF, DOC, DOCX, PNG, JPG accepted</span>
+                                    <input type="file" id="resume-files" name="attachment" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="dropzone-input">
+                                </div>
+                                <div class="resume-file-list" id="resume-file-list"></div>
+                            </div>
+                            <button type="submit" class="resume-submit" id="resume-submit">
+                                <span>Submit</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                            </button>
+                            <div class="resume-status" id="resume-status"></div>
+                        </form>
+                    </div>
                 </div>
             </article>
         </div>
     </section>
 
-    <script src="script.js?v=17"></script>
+    <script src="script.js?v=18"></script>
 </body>
 </html>
