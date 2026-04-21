@@ -1900,14 +1900,14 @@
     // Bird Shadows — ambient flocks crossing the screen
     // ========================================
     const BIRD_CONFIG = {
-        minInterval: 900,     // Min ms between flocks
-        maxInterval: 2800,    // Max ms between flocks
-        minFlock: 2,          // Min birds per flock (solo pairs to big Vs)
-        maxFlock: 16,         // Max birds per flock
-        minSpeed: 0.35,       // Slowest gliders
-        maxSpeed: 1.1,        // Fastest darters
+        minInterval: 4000,    // Min ms between flocks
+        maxInterval: 10000,   // Max ms between flocks
+        minFlock: 2,          // Min birds per flock
+        maxFlock: 12,         // Max birds per flock
+        minSpeed: 0.28,       // Slowest gliders (20% slower)
+        maxSpeed: 0.88,       // Fastest darters (20% slower)
         opacity: 0.22,        // Shadow darkness — bolder
-        maxFlocks: 14         // Max simultaneous flocks on screen
+        maxFlocks: 4          // Max simultaneous flocks on screen
     };
 
     let birdCanvas = null;
@@ -1922,10 +1922,9 @@
         document.body.appendChild(birdCanvas);
         resizeBirdCanvas();
         window.addEventListener('resize', resizeBirdCanvas);
-        // Welcome flurry — burst of flocks in the first few seconds
-        for (let i = 0; i < 8; i++) {
-            setTimeout(() => { birdFlocks.push(createFlock()); }, 300 + i * 400 + Math.random() * 300);
-        }
+        // Welcome flurry — a couple flocks to start
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 1000 + Math.random() * 800);
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 3000 + Math.random() * 1500);
         scheduleFlock();
         requestAnimationFrame(drawBirds);
     }
