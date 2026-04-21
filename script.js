@@ -1900,13 +1900,14 @@
     // Bird Shadows — ambient flocks crossing the screen
     // ========================================
     const BIRD_CONFIG = {
-        minInterval: 7000,    // Min ms between flocks
-        maxInterval: 16000,   // Max ms between flocks
-        minFlock: 4,          // Min birds per flock
-        maxFlock: 12,         // Max birds per flock
-        speed: 0.6,           // Base px per frame (~60fps)
+        minInterval: 1800,    // Min ms between flocks
+        maxInterval: 5000,    // Max ms between flocks
+        minFlock: 2,          // Min birds per flock (solo pairs to big Vs)
+        maxFlock: 16,         // Max birds per flock
+        minSpeed: 0.35,       // Slowest gliders
+        maxSpeed: 1.1,        // Fastest darters
         opacity: 0.14,        // Shadow darkness
-        maxFlocks: 4          // Max simultaneous flocks on screen
+        maxFlocks: 10         // Max simultaneous flocks on screen
     };
 
     let birdCanvas = null;
@@ -1921,13 +1922,11 @@
         document.body.appendChild(birdCanvas);
         resizeBirdCanvas();
         window.addEventListener('resize', resizeBirdCanvas);
-        // First two flocks staggered for an alive sky from the start
-        setTimeout(() => {
-            birdFlocks.push(createFlock());
-        }, 2000 + Math.random() * 1500);
-        setTimeout(() => {
-            birdFlocks.push(createFlock());
-        }, 5000 + Math.random() * 2000);
+        // Staggered initial flocks for an alive sky from the start
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 800 + Math.random() * 600);
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 2000 + Math.random() * 1000);
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 3500 + Math.random() * 1000);
+        setTimeout(() => { birdFlocks.push(createFlock()); }, 5500 + Math.random() * 1500);
         scheduleFlock();
         requestAnimationFrame(drawBirds);
     }
@@ -1953,65 +1952,134 @@
         const w = window.innerWidth;
         const h = window.innerHeight;
 
-        // Pick a corner/edge to enter from
-        const side = Math.floor(Math.random() * 4); // 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+        // Pick entry from any edge — 6 zones for variety
+        const side = Math.floor(Math.random() * 6);
         let startX, startY, angle;
-        const margin = 60;
+        const margin = 80;
 
         switch (side) {
-            case 0: // top-left → bottom-right
+            case 0: // top-left corner → diagonal
                 startX = -margin;
-                startY = Math.random() * h * 0.3;
-                angle = Math.PI * 0.2 + Math.random() * 0.15;
+                startY = Math.random() * h * 0.25;
+                angle = Math.PI * 0.15 + Math.random() * 0.25;
                 break;
-            case 1: // top-right → bottom-left
+            case 1: // top-right corner → diagonal
                 startX = w + margin;
-                startY = Math.random() * h * 0.3;
-                angle = Math.PI - (Math.PI * 0.2 + Math.random() * 0.15);
+                startY = Math.random() * h * 0.25;
+                angle = Math.PI - (Math.PI * 0.15 + Math.random() * 0.25);
                 break;
-            case 2: // left side → right
+            case 2: // left mid → right, slight angle
                 startX = -margin;
-                startY = h * 0.15 + Math.random() * h * 0.4;
-                angle = Math.random() * 0.3 - 0.15;
+                startY = h * 0.1 + Math.random() * h * 0.5;
+                angle = Math.random() * 0.4 - 0.2;
                 break;
-            case 3: // right side → left
+            case 3: // right mid → left, slight angle
                 startX = w + margin;
-                startY = h * 0.15 + Math.random() * h * 0.4;
-                angle = Math.PI + (Math.random() * 0.3 - 0.15);
+                startY = h * 0.1 + Math.random() * h * 0.5;
+                angle = Math.PI + (Math.random() * 0.4 - 0.2);
+                break;
+            case 4: // top center → downward sweep
+                startX = w * 0.2 + Math.random() * w * 0.6;
+                startY = -margin;
+                angle = Math.PI * 0.4 + Math.random() * 0.2;
+                break;
+            case 5: // bottom-left → upper-right (rising flock)
+                startX = -margin;
+                startY = h * 0.5 + Math.random() * h * 0.4;
+                angle = -0.2 - Math.random() * 0.3;
                 break;
         }
 
-        const speed = BIRD_CONFIG.speed * (0.8 + Math.random() * 0.4);
+        // Varied speed per flock
+        const speed = BIRD_CONFIG.minSpeed + Math.random() * (BIRD_CONFIG.maxSpeed - BIRD_CONFIG.minSpeed);
         const vx = Math.cos(angle) * speed;
         const vy = Math.sin(angle) * speed;
 
-        // Leader bird
-        const leaderSize = 8 + Math.random() * 5;
+        // Formation type — weighted random
+        const formRoll = Math.random();
+        let formation;
+        if (formRoll < 0.35) formation = 'v';          // Classic V
+        else if (formRoll < 0.55) formation = 'echelon'; // Diagonal line
+        else if (formRoll < 0.70) formation = 'cluster'; // Loose cluster
+        else if (formRoll < 0.85) formation = 'line';    // Straight line
+        else formation = 'staggered';                     // Staggered pairs
+
+        // Size varies per flock — distant (small) vs close (big)
+        const distanceFactor = Math.random(); // 0 = far, 1 = close
+        const leaderSize = 5 + distanceFactor * 9; // 5–14px
         const birds = [];
 
-        // V-formation: leader + two trailing wings
         for (let i = 0; i < count; i++) {
             let offX = 0, offY = 0;
+
             if (i > 0) {
-                // Alternating left/right behind the leader
-                const wing = Math.ceil(i / 2);
-                const leftSide = i % 2 === 1;
-                // Perpendicular offset
-                const perpAngle = angle + (leftSide ? -Math.PI / 2 : Math.PI / 2);
-                const spread = wing * (18 + Math.random() * 8);
-                offX = Math.cos(perpAngle) * spread - Math.cos(angle) * wing * (14 + Math.random() * 6);
-                offY = Math.sin(perpAngle) * spread - Math.sin(angle) * wing * (14 + Math.random() * 6);
+                const perpAngle = angle + Math.PI / 2;
+
+                switch (formation) {
+                    case 'v': {
+                        const wing = Math.ceil(i / 2);
+                        const leftSide = i % 2 === 1;
+                        const side = leftSide ? -1 : 1;
+                        const spread = wing * (16 + Math.random() * 10);
+                        offX = Math.cos(perpAngle) * spread * side - Math.cos(angle) * wing * (12 + Math.random() * 8);
+                        offY = Math.sin(perpAngle) * spread * side - Math.sin(angle) * wing * (12 + Math.random() * 8);
+                        break;
+                    }
+                    case 'echelon': {
+                        // Diagonal line — all on one side
+                        const gap = i * (14 + Math.random() * 8);
+                        const drift = i * (10 + Math.random() * 6);
+                        offX = -Math.cos(angle) * gap + Math.cos(perpAngle) * drift;
+                        offY = -Math.sin(angle) * gap + Math.sin(perpAngle) * drift;
+                        break;
+                    }
+                    case 'cluster': {
+                        // Loose random grouping
+                        const radius = (20 + Math.random() * 30) * Math.sqrt(count);
+                        const a = Math.random() * Math.PI * 2;
+                        const r = Math.random() * radius * 0.6;
+                        offX = Math.cos(a) * r;
+                        offY = Math.sin(a) * r;
+                        break;
+                    }
+                    case 'line': {
+                        // Straight perpendicular line
+                        const pos = (i - count / 2) * (14 + Math.random() * 6);
+                        offX = Math.cos(perpAngle) * pos;
+                        offY = Math.sin(perpAngle) * pos;
+                        break;
+                    }
+                    case 'staggered': {
+                        // Pairs with stagger
+                        const row = Math.floor(i / 2);
+                        const col = i % 2;
+                        const rowGap = row * (18 + Math.random() * 8);
+                        const colGap = (col - 0.5) * (20 + Math.random() * 10);
+                        offX = -Math.cos(angle) * rowGap + Math.cos(perpAngle) * colGap;
+                        offY = -Math.sin(angle) * rowGap + Math.sin(perpAngle) * colGap;
+                        break;
+                    }
+                }
+
+                // Add slight jitter to all formations
+                offX += (Math.random() - 0.5) * 6;
+                offY += (Math.random() - 0.5) * 6;
             }
 
-            const sizeMul = i === 0 ? 1 : (0.65 + Math.random() * 0.3);
+            const sizeMul = i === 0 ? 1 : (0.6 + Math.random() * 0.35);
+            // Wing speed varies more — lazy gliders vs quick flappers
+            const wingSpeedBase = speed < 0.55 ? 0.025 : speed > 0.85 ? 0.06 : 0.04;
             birds.push({
                 offX,
                 offY,
                 size: leaderSize * sizeMul,
                 wingPhase: Math.random() * Math.PI * 2,
-                wingSpeed: 0.04 + Math.random() * 0.02
+                wingSpeed: wingSpeedBase + Math.random() * 0.025
             });
         }
+
+        // Opacity scales slightly with distance (far = fainter)
+        const opacityMul = 0.6 + distanceFactor * 0.4;
 
         return {
             x: startX,
@@ -2020,7 +2088,7 @@
             vy,
             birds,
             angle,
-            opacity: BIRD_CONFIG.opacity * (0.7 + Math.random() * 0.3)
+            opacity: BIRD_CONFIG.opacity * opacityMul * (0.8 + Math.random() * 0.2)
         };
     }
 
