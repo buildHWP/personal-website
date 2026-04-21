@@ -1900,14 +1900,14 @@
     // Bird Shadows — ambient flocks crossing the screen
     // ========================================
     const BIRD_CONFIG = {
-        minInterval: 1800,    // Min ms between flocks
-        maxInterval: 5000,    // Max ms between flocks
+        minInterval: 900,     // Min ms between flocks
+        maxInterval: 2800,    // Max ms between flocks
         minFlock: 2,          // Min birds per flock (solo pairs to big Vs)
         maxFlock: 16,         // Max birds per flock
         minSpeed: 0.35,       // Slowest gliders
         maxSpeed: 1.1,        // Fastest darters
-        opacity: 0.14,        // Shadow darkness
-        maxFlocks: 10         // Max simultaneous flocks on screen
+        opacity: 0.22,        // Shadow darkness — bolder
+        maxFlocks: 14         // Max simultaneous flocks on screen
     };
 
     let birdCanvas = null;
@@ -1922,11 +1922,10 @@
         document.body.appendChild(birdCanvas);
         resizeBirdCanvas();
         window.addEventListener('resize', resizeBirdCanvas);
-        // Staggered initial flocks for an alive sky from the start
-        setTimeout(() => { birdFlocks.push(createFlock()); }, 800 + Math.random() * 600);
-        setTimeout(() => { birdFlocks.push(createFlock()); }, 2000 + Math.random() * 1000);
-        setTimeout(() => { birdFlocks.push(createFlock()); }, 3500 + Math.random() * 1000);
-        setTimeout(() => { birdFlocks.push(createFlock()); }, 5500 + Math.random() * 1500);
+        // Welcome flurry — burst of flocks in the first few seconds
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => { birdFlocks.push(createFlock()); }, 300 + i * 400 + Math.random() * 300);
+        }
         scheduleFlock();
         requestAnimationFrame(drawBirds);
     }
@@ -1952,42 +1951,23 @@
         const w = window.innerWidth;
         const h = window.innerHeight;
 
-        // Pick entry from any edge — 6 zones for variety
-        const side = Math.floor(Math.random() * 6);
-        let startX, startY, angle;
+        // Entry: left or right side, generally horizontal with slight upward tilt
+        // angle ~0 = rightward, ~PI = leftward; negative = upward tilt
+        const goingRight = Math.random() < 0.5;
         const margin = 80;
+        let startX, startY, angle;
 
-        switch (side) {
-            case 0: // top-left corner → diagonal
-                startX = -margin;
-                startY = Math.random() * h * 0.25;
-                angle = Math.PI * 0.15 + Math.random() * 0.25;
-                break;
-            case 1: // top-right corner → diagonal
-                startX = w + margin;
-                startY = Math.random() * h * 0.25;
-                angle = Math.PI - (Math.PI * 0.15 + Math.random() * 0.25);
-                break;
-            case 2: // left mid → right, slight angle
-                startX = -margin;
-                startY = h * 0.1 + Math.random() * h * 0.5;
-                angle = Math.random() * 0.4 - 0.2;
-                break;
-            case 3: // right mid → left, slight angle
-                startX = w + margin;
-                startY = h * 0.1 + Math.random() * h * 0.5;
-                angle = Math.PI + (Math.random() * 0.4 - 0.2);
-                break;
-            case 4: // top center → downward sweep
-                startX = w * 0.2 + Math.random() * w * 0.6;
-                startY = -margin;
-                angle = Math.PI * 0.4 + Math.random() * 0.2;
-                break;
-            case 5: // bottom-left → upper-right (rising flock)
-                startX = -margin;
-                startY = h * 0.5 + Math.random() * h * 0.4;
-                angle = -0.2 - Math.random() * 0.3;
-                break;
+        // Slight upward bias: -0.15 to +0.08 rad (~-9° to +5°)
+        const tilt = -0.15 + Math.random() * 0.23;
+
+        if (goingRight) {
+            startX = -margin;
+            startY = h * 0.08 + Math.random() * h * 0.7;
+            angle = tilt; // ~horizontal rightward, slightly up
+        } else {
+            startX = w + margin;
+            startY = h * 0.08 + Math.random() * h * 0.7;
+            angle = Math.PI + tilt; // ~horizontal leftward, slightly up
         }
 
         // Varied speed per flock
